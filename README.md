@@ -9,23 +9,19 @@
 
 ```git clone https://github.com/Murik1502/fsgn-events-bot.git```
 
-2. Переход в директорию Oxygen
-
-```cd Oxygen```
-
-3. Создание виртуального окружения
+2. Создание виртуального окружения
 
 ```python3 -m venv venv```
 
-4. Активация виртуального окружения
+3. Активация виртуального окружения
 
 ```.\venv\Scripts\Activate.ps1```
 
-5. Установка зависимостей
+4. Установка зависимостей
 
 ```pip3 install -r requirements.txt```
 
-6. Запуск бота
+5. Запуск бота
 
 ```python3 main.py```
 
@@ -35,23 +31,19 @@
 
 ```git clone https://github.com/Murik1502/fsgn-events-bot.git```
 
-2. Переход в директорию Oxygen
-
-```cd Oxygen```
-
-3. Создание виртуального окружения
+2. Создание виртуального окружения
 
 ```python3 -m venv venv```
 
-4. Активация виртуального окружения
+3. Активация виртуального окружения
 
 ```source venv/bin/activate```
 
-5. Установка зависимостей
+4. Установка зависимостей
 
 ```pip3 install -r requirements.txt```
 
-6. Запуск бота
+5. Запуск бота
 
 ```python3 main.py```
 
