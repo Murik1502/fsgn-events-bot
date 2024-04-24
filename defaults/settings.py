@@ -1,25 +1,25 @@
-from environs import Env
+import os
 from dataclasses import dataclass
+
+
 @dataclass
 class Bots:
     bot_token: str
     admin_id: int
 
+
 @dataclass
 class Settings:
     bots: Bots
 
-def get_settings(path: str):
-    env = Env()
-    env.read_env(path)
+
+def get_settings():
     return Settings(
         bots=Bots(
-            bot_token=env.str("BOT_TOKEN"),
-            admin_id=env.int("ADMIN_ID"),
-
+            bot_token=os.getenv("BOT_TOKEN"),
+            admin_id=int(os.getenv("ADMIN_ID")),
         )
     )
 
-settings = get_settings("C:/Users/admin/temp/defaults/settings.txt")
 
-
+settings = get_settings()
