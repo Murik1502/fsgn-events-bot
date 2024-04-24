@@ -11,7 +11,7 @@ def number_to_letter(df):
         number //= 26
     return result
 
-#NOTE: Данная функция гавно какое то не работающее
+#NOTE: Данная функция говно какое то не работающее
 def format_borders(worksheet, last_column_letter, last_row_number):
     worksheet.format(f'A{last_row_number}:{last_column_letter}{last_row_number}', {
         "borders": {
