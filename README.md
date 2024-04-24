@@ -50,7 +50,7 @@
 <!--зависимости-->
 ## Зависимости
 
-У вас должны быть установлены [зависимости проекта](https://github.com/Murik1502/fsgn-events-bot/main/requirements.txt)
+У вас должны быть установлены [зависимости проекта](https://github.com/Murik1502/fsgn-events-bot/requirements.txt)
 
 <!--описание коммитов-->
 ## Описание коммитов
