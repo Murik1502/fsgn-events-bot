@@ -1,6 +1,7 @@
 import pandas as pd
 from settings import client
 
+
 def number_to_letter(df):
     number = len(df.columns)
     result = ''

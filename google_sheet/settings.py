@@ -9,9 +9,7 @@ database_password = settings.database.password
 database_host = settings.database.host
 database_port = settings.database.port
 
-
 scope = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive"]
-
 
 pg_db = PostgresqlDatabase(
     database_name,
@@ -29,7 +27,6 @@ cursor = pg_db.execute_sql(query)
 json = cursor.fetchone()[0]
 
 pg_db.close()
-
 
 credentials = ServiceAccountCredentials.from_json_keyfile_dict(json, scope)
 client = gspread.authorize(credentials)
