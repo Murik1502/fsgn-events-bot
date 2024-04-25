@@ -11,5 +11,3 @@ class UserTable(BaseModel):
 
     class Meta:
         table_name = 'users'
-
-UserTable.create_table(True)

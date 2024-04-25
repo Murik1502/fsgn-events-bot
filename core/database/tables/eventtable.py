@@ -11,5 +11,3 @@ class EventTable(BaseModel):
 
     class Meta:
         table_name = 'events'
-
-EventTable.create_table(True)
