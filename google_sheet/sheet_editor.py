@@ -198,7 +198,7 @@ class Sheet:
                     })
             style_sheet(worksheet, df)
 
-    def deleteUsers(self, users: list[str | int], id=0) -> None:
+    def deleteUsers(self, users: list, id=0) -> None:
         """
                Удаляет строки в таблице, соответствующие ID пользователям из предоставленного списка.
                ID поумолчанию в первой колонке.
