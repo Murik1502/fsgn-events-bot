@@ -1,7 +1,6 @@
 import pandas as pd
 from settings import client
 
-
 def number_to_letter(df):
     number = len(df.columns)
     result = ''
@@ -11,24 +10,61 @@ def number_to_letter(df):
         number //= 26
     return result
 
-#NOTE: Данная функция говно какое то не работающее
-def format_borders(worksheet, last_column_letter, last_row_number):
-    worksheet.format(f'A{last_row_number}:{last_column_letter}{last_row_number}', {
+
+def style_sheet(worksheet, df):
+    worksheet.format(f'A1:{number_to_letter(df)}1', {
+        "backgroundColor": {
+            "red": 0.7529,
+            "green": 0.9137,
+            "blue": 0.7529
+        },
         "borders": {
             "bottom": {
                 "style": "SOLID",
-                "width": 1,
+                "width": 2,
                 "color": {"red": 0, "green": 0, "blue": 0}
             }
+        },
+        "textFormat": {
+            "fontSize": 12,
+            "bold": True
         }
     })
-    worksheet.format(f'{last_column_letter}1:{last_column_letter}{last_row_number}', {
+    worksheet.format(f'{chr(ord(number_to_letter(df)) + 1)}1:{chr(ord(number_to_letter(df)) + 1)}{len(df) + 1}', {
+        "backgroundColor": {
+            "red": 1.0,
+            "green": 1.0,
+            "blue": 1.0
+        },
         "borders": {
-            "right": {
+            "left": {
                 "style": "SOLID",
-                "width": 1,
+                "width": 2,
                 "color": {"red": 0, "green": 0, "blue": 0}
-            }
+            },
+        },
+        "textFormat": {
+            "fontSize": 12,
+            "bold": True
+        }
+    })
+
+    worksheet.format(f'A{len(df) + 2}:{chr(ord(number_to_letter(df)))}{len(df) + 2}', {
+        "backgroundColor": {
+            "red": 1.0,
+            "green": 1.0,
+            "blue": 1.0
+        },
+        "borders": {
+            "top": {
+                "style": "SOLID",
+                "width": 2,
+                "color": {"red": 0, "green": 0, "blue": 0}
+            },
+        },
+        "textFormat": {
+            "fontSize": 12,
+            "bold": True
         }
     })
 
@@ -87,25 +123,7 @@ class Sheet:
 
         df = pd.DataFrame(data, columns=title)
         worksheet.update([df.columns.values.tolist()] + df.values.tolist())
-
-        worksheet.format(f'A1:{number_to_letter(df)}1', {
-            "backgroundColor": {
-                "red": 0.0,
-                "green": 1.0,
-                "blue": 0.0
-            },
-            "borders": {
-                "bottom": {
-                    "style": "SOLID",
-                    "width": 2,
-                    "color": {"red": 0, "green": 0, "blue": 0}
-                }
-            },
-            "textFormat": {
-                "fontSize": 12,
-                "bold": True
-            }
-        })
+        style_sheet(worksheet, df)
 
         if self.team:
             df.sort_values(by='Команда', inplace=True)
@@ -122,9 +140,9 @@ class Sheet:
                         }
                     }
                 })
-        last_row_number = len(df)
-        last_column_letter = number_to_letter(df)
-        # format_borders(worksheet, last_column_letter, last_row_number)
+
+        style_sheet(worksheet, df)
+
         return self.link
 
     def updateSheet(self, data=None) -> list[str]:
@@ -164,11 +182,6 @@ class Sheet:
 
             worksheet.spreadsheet.batch_update({'requests': requests})
             worksheet.update([df.columns.values.tolist()] + df.values.tolist())
-            worksheet.format(f'A1:{number_to_letter(df)}1', {
-                "backgroundColor": {"red": 0.0, "green": 1.0, "blue": 0.0},
-                "borders": {"bottom": {"style": "SOLID", "width": 2, "color": {"red": 0, "green": 0, "blue": 0}}},
-                "textFormat": {"fontSize": 12, "bold": True}
-            })
 
             if self.team:
                 last_indices = df[df['Команда'] != df['Команда'].shift(-1)].index.tolist()
@@ -183,18 +196,17 @@ class Sheet:
                             }
                         }
                     })
+            style_sheet(worksheet, df)
 
-        last_row_number = len(df)
-        last_column_letter = number_to_letter(df)
-        # format_borders(worksheet, last_column_letter, last_row_number)
-
-    def deleteUsers(self, users: list[str | int]) -> None:
+    def deleteUsers(self, users: list[str | int], id=0) -> None:
         """
                Удаляет строки в таблице, соответствующие ID пользователям из предоставленного списка.
+               ID поумолчанию в первой колонке.
 
                Параметры:
                    users (list[str|int]): Список ID пользователей, чьи данные следует удалить из таблицы.
 
+                   id (int): Индекс столбца, в котором хранятся ID пользователей. По умолчанию стоит 0
                Очищает все форматы и обновляет данные, оставляя только те строки, которые не включают указанные ID.
                """
         try:
@@ -204,7 +216,7 @@ class Sheet:
         worksheet = client.open_by_url(self.link).sheet1
         sheetData = worksheet.get_all_values()
         df = pd.DataFrame(sheetData[1:], columns=sheetData[0])
-        mask = ~df['id'].isin(users)
+        mask = ~(df.iloc[:, id]).isin(users)
         df = df[mask].reset_index(drop=True)
         worksheet.clear()
 
@@ -223,12 +235,6 @@ class Sheet:
         worksheet.spreadsheet.batch_update({'requests': requests})
         worksheet.update([df.columns.values.tolist()] + df.values.tolist())
 
-        worksheet.format(f'A1:{number_to_letter(df)}1', {
-            "backgroundColor": {"red": 0.0, "green": 1.0, "blue": 0.0},
-            "borders": {"bottom": {"style": "SOLID", "width": 2, "color": {"red": 0, "green": 0, "blue": 0}}},
-            "textFormat": {"fontSize": 12, "bold": True}
-        })
-
         if self.team:
             last_indices = df[df['Команда'] != df['Команда'].shift(-1)].index.tolist()
             for index in last_indices:
@@ -242,9 +248,8 @@ class Sheet:
                         }
                     }
                 })
-        last_row_number = len(df)
-        last_column_letter = number_to_letter(df)
-        # format_borders(worksheet, last_column_letter, last_row_number)
+
+        style_sheet(worksheet, df)
 
 
 """Для работы с Google Sheets необходимо установить библиотеку необходимо в requirements.txt установить oauth2client, 
@@ -261,19 +266,5 @@ print(a.createSheet(['id', 'Имя', 'Группа', 'Команда'],
                     [['1', 'Максим', '23', '1'], ['4', 'Ильдар', '23', '1'], ['7', 'Влад', '24', '2'],
                      ['10', 'Алексей', '22', '3']]))
 a.updateSheet([['15', 'Маша', '12', '3']])
-a.deleteUsers(['4'])
+a.deleteUsers(['4'], 0)
 """
-
-
-
-
-
-
-
-
-
-
-
-
-
-

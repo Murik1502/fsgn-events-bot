@@ -1,17 +1,17 @@
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
-import pandas as pd
 from peewee import PostgresqlDatabase
-import os
+from defaults.settings import settings
+
+database_name = settings.database.name
+database_user = settings.database.user
+database_password = settings.database.password
+database_host = settings.database.host
+database_port = settings.database.port
 
 
 scope = ['https://www.googleapis.com/auth/spreadsheets', "https://www.googleapis.com/auth/drive"]
 
-database_name = os.getenv('DATABASE_NAME', 'default_db_name')
-database_user = os.getenv('DATABASE_USER', 'default_user')
-database_password = os.getenv('DATABASE_PASSWORD', 'default_password')
-database_host = os.getenv('DATABASE_HOST', 'localhost')
-database_port = os.getenv('DATABASE_PORT', 5432)
 
 pg_db = PostgresqlDatabase(
     database_name,
