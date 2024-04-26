@@ -29,7 +29,7 @@ class Event:
     @property
     def name(self) -> str:
         return self.table.name
-    
+
     @name.setter
     def name(self, name: str):
         self.__set_field(name=name)
@@ -37,7 +37,7 @@ class Event:
     @property
     def description(self) -> str:
         return self.table.description
-    
+
     @description.setter
     def description(self, description: str):
         self.__set_field(description=description)
@@ -45,7 +45,7 @@ class Event:
     @property
     def date(self) -> datetime:
         return self.table.date
-    
+
     @date.setter
     def date(self, date: datetime):
         self.__set_field(date=date)
@@ -53,15 +53,15 @@ class Event:
     @property
     def type(self) -> EventType:
         return EventType(self.table.type)
-    
+
     @type.setter
     def type(self, type: EventType):
         self.__set_field(type=type.value)
-    
+
     @property
     def photo_id(self) -> str:
         return self.table.photo_id
-    
+
     @photo_id.setter
     def photo_id(self, value: str):
         self.__set_field(photo_id=value)
@@ -69,11 +69,11 @@ class Event:
     @property
     def google_sheet(self) -> str:
         return self.table.google_sheet
-    
+
     @google_sheet.setter
     def google_sheet(self, value: str):
         self.__set_field(google_sheet=value)
-        
+
     def __set_field(self, **values):
         id = self.id
         EventTable.update(**values).where(EventTable.id == id).execute()
@@ -98,5 +98,6 @@ class Event:
                 ParticipantTable.select().where(
                     ParticipantTable.user == user_id, ParticipantTable.event == self.id
                 )
-            ) > 0
+            )
+            > 0
         )

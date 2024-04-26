@@ -18,15 +18,15 @@ class Team:
     @property
     def id(self):
         return self.__id
-    
+
     @property
     def leader(self):
         return user.User(TeamTable.get_by_id(self.id).leader)
-    
+
     @property
     def event(self):
         return event.Event(TeamTable.get_by_id(self.id).event)
-    
+
     def teammates(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, TeamTable.get_by_id(self.id).teammates)
 

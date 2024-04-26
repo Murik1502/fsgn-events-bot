@@ -30,7 +30,7 @@ class Participant:
     @property
     def visit(self) -> Visit:
         return Visit(self.table.visit)
-    
+
     @property
     def team(self) -> team.Team:
         if self.table.team is None:

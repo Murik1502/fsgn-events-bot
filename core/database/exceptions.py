@@ -17,5 +17,6 @@ class UserAlreadyJoined(Exception):
 class TeamIsRequired(Exception):
     pass
 
+
 class TeamNotFound(Exception):
     pass

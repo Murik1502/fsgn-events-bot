@@ -4,6 +4,7 @@ from .usertable import UserTable
 from .eventtable import EventTable
 from .teamtable import TeamTable
 
+
 class ParticipantTable(BaseModel):
     user = ForeignKeyField(UserTable, backref="participation")
     event = ForeignKeyField(EventTable, backref="participants")

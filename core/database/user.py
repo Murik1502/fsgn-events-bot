@@ -33,7 +33,7 @@ class User:
     @property
     def first_name(self) -> str:
         return self.table.first_name
-    
+
     @first_name.setter
     def first_name(self, first_name: str):
         self.__set_field(first_name=first_name)
@@ -41,7 +41,7 @@ class User:
     @property
     def last_name(self) -> str:
         return self.table.last_name
-    
+
     @last_name.setter
     def last_name(self, last_name: str):
         self.__set_field(last_name=last_name)
@@ -49,7 +49,7 @@ class User:
     @property
     def middle_name(self) -> str | None:
         return self.table.middle_name
-    
+
     @middle_name.setter
     def middle_name(self, middle_name: str | None):
         self.__set_field(middle_name=middle_name)
@@ -57,7 +57,7 @@ class User:
     @property
     def group(self) -> str:
         return self.table.group
-    
+
     @group.setter
     def group(self, group: str):
         self.__set_field(group=group)
@@ -65,11 +65,11 @@ class User:
     @property
     def role(self) -> Role:
         return Role(self.table.role)
-    
+
     @role.setter
     def role(self, role: Role):
         self.__set_field(role=role.value)
-    
+
     def __set_field(self, **values):
         id = self.id
         UserTable.update(**values).where(UserTable.id == id).execute()
@@ -80,7 +80,7 @@ class User:
 
     def participation(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, self.table.participation)
-    
+
     def teams(self) -> Iterator[team.Team]:
         return map(lambda x: team.Team(x.id), self.table.teams)
 
@@ -112,7 +112,13 @@ class User:
         return User(model)
 
     def create_event(
-        self, name: str, description: str, date: datetime, type: EventType, google_sheet: str, photo_id: str,
+        self,
+        name: str,
+        description: str,
+        date: datetime,
+        type: EventType,
+        google_sheet: str,
+        photo_id: str,
     ) -> event.Event:
         if User.fetch(self.id).role != Role.ADMIN:
             raise NotEnoughPermission()
@@ -127,19 +133,16 @@ class User:
                 photo_id=photo_id,
             )
         )
-    
+
     def create_team(self, event_id: int) -> tuple[team.Team, participant.Participant]:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
-        t = team.Team(
-            team.TeamTable.create(leader=self.id, event=event_id).id
-        )
+        t = team.Team(team.TeamTable.create(leader=self.id, event=event_id).id)
         return t, self.join(event_id, team_id=t.id)
-        
 
     def join(
-        self, event_id: int, visit: Visit = Visit.UNDEFINED, team_id: int | None =  None
+        self, event_id: int, visit: Visit = Visit.UNDEFINED, team_id: int | None = None
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
