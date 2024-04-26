@@ -1,13 +1,5 @@
 from defaults.settings import settings
-from peewee import Model
-from peewee_async import PostgresqlDatabase, Manager
-
-
-# Windows Fix
-import sys, asyncio
-
-if sys.version_info >= (3, 8) and sys.platform.lower().startswith("win"):
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+from peewee import PostgresqlDatabase, Model
 
 db = PostgresqlDatabase(
     database=settings.database.name,
@@ -16,10 +8,6 @@ db = PostgresqlDatabase(
     host=settings.database.host,
     port=settings.database.port,
 )
-
-objects = Manager(db)
-
-db.set_allow_sync(False)
 
 class BaseModel(Model):
     class Meta:

@@ -1,12 +1,10 @@
-from .db import db, objects
+from .db import db
 from .usertable import UserTable
 from .eventtable import EventTable
 
-async def connect():
-    with objects.allow_sync():
-        db.connect()
-        db.create_tables([UserTable, EventTable])
+def connect():
+    db.connect()
+    db.create_tables([UserTable, EventTable])
 
-async def disconnect():
-    await objects.close()
+def disconnect():
     db.close()
