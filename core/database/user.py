@@ -31,22 +31,47 @@ class User:
     @property
     def first_name(self) -> str:
         return self.table.first_name
+    
+    @first_name.setter
+    def first_name(self, first_name: str):
+        self.__set_field(first_name=first_name)
 
     @property
     def last_name(self) -> str:
         return self.table.last_name
+    
+    @last_name.setter
+    def last_name(self, last_name: str):
+        self.__set_field(last_name=last_name)
 
     @property
-    def middle_name(self) -> str:
+    def middle_name(self) -> str | None:
         return self.table.middle_name
+    
+    @middle_name.setter
+    def middle_name(self, middle_name: str | None):
+        self.__set_field(middle_name=middle_name)
 
     @property
     def group(self) -> str:
         return self.table.group
+    
+    @group.setter
+    def group(self, group: str):
+        self.__set_field(group=group)
 
     @property
     def role(self) -> Role:
         return Role(self.table.role)
+    
+    @role.setter
+    def role(self, role: Role):
+        self.__set_field(role=role.value)
+    
+    def __set_field(self, **values):
+        id = self.id
+        UserTable.update(**values).where(UserTable.id == id).execute()
+        self.table = UserTable.get_by_id(id)
 
     def events(self) -> Iterator[event.Event]:
         return map(event.Event, self.table.events)
