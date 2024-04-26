@@ -10,47 +10,51 @@ from . import user
 
 
 class Event:
-    model: EventTable
+    table: EventTable
 
-    def __init__(self, model: EventTable) -> None:
-        self.model = model
+    def __init__(self, table: EventTable) -> None:
+        self.table = table
 
     @property
     def id(self) -> int:
-        return self.model.id
-    
+        return self.table.id
+
     @property
     def creator(self) -> user.User:
-        return user.User(self.model.creator)
-    
+        return user.User(self.table.creator)
+
     @property
     def name(self) -> str:
-        return self.model.name
-    
+        return self.table.name
+
     @property
     def description(self) -> str:
-        return self.model.description
-    
+        return self.table.description
+
     @property
     def date(self) -> datetime:
-        return self.model.date
-    
+        return self.table.date
+
     @property
     def type(self) -> EventType:
-        return EventType(self.model.type)
-    
+        return EventType(self.table.type)
+
     @staticmethod
-    def create(creator: int, name: str, description: str, date: datetime, type: EventType):
+    def create(
+        creator: int, name: str, description: str, date: datetime, type: EventType
+    ) -> Event:
         if user.User.fetch(creator).role != Role.ADMIN:
             raise NotEnoughPermission()
-        return Event(EventTable.create(
-            creator=creator,
-            name=name,
-            description=description,
-            date=date,
-            type=type.value,
-        ))
-    
+        return Event(
+            EventTable.create(
+                creator=creator,
+                name=name,
+                description=description,
+                date=date,
+                type=type.value,
+            )
+        )
+
     @staticmethod
     def fetch(id: int) -> Event:
         print(EventTable.select().where(EventTable.id == id))
@@ -58,4 +62,3 @@ class Event:
         if model is None:
             raise EventNotFound()
         return Event(model)
-

@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class Role(Enum):
-    DEFAULT = 'default'
-    ADMIN = 'admin'
+    DEFAULT = "default"
+    ADMIN = "admin"

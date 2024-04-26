@@ -1,6 +1,7 @@
 from peewee import *
 from .db import BaseModel
 
+
 class UserTable(BaseModel):
     telegram_id = BigIntegerField()
     first_name = CharField(50)
@@ -10,4 +11,4 @@ class UserTable(BaseModel):
     role = CharField(20)
 
     class Meta:
-        table_name = 'users'
+        table_name = "users"

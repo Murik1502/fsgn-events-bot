@@ -9,6 +9,7 @@ db = PostgresqlDatabase(
     port=settings.database.port,
 )
 
+
 class BaseModel(Model):
     class Meta:
         database = db
