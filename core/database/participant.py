@@ -30,6 +30,14 @@ class Participant:
     def visit(self) -> Visit:
         return Visit(self.table.visit)
 
+    @visit.setter
+    def visit(self, visit: Visit):
+        id = self.id
+        ParticipantTable.update(visit=visit.value).where(
+            ParticipantTable.id == id
+        ).execute()
+        self.table = ParticipantTable.select().where(ParticipantTable.id == id).first()
+
     @staticmethod
     def fetch(id: int) -> Participant:
         model = ParticipantTable.select().where(ParticipantTable.id == id).first()
