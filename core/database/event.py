@@ -28,18 +28,34 @@ class Event:
     @property
     def name(self) -> str:
         return self.table.name
+    
+    @name.setter
+    def name(self, name: str):
+        self.__set_field(name=name)
 
     @property
     def description(self) -> str:
         return self.table.description
+    
+    @description.setter
+    def description(self, description: str):
+        self.__set_field(description=description)
 
     @property
     def date(self) -> datetime:
         return self.table.date
+    
+    @date.setter
+    def date(self, date: datetime):
+        self.__set_field(date=date)
 
     @property
     def type(self) -> EventType:
         return EventType(self.table.type)
+    
+    @type.setter
+    def type(self, type: EventType):
+        self.__set_field(type=type.value)
     
     @property
     def photo_id(self) -> str:
@@ -47,9 +63,7 @@ class Event:
     
     @photo_id.setter
     def photo_id(self, value: str):
-        id = self.id
-        EventTable.update(photo_id=value).where(EventTable.id == id).execute()
-        self.table = EventTable.get_by_id(id)
+        self.__set_field(photo_id=value)
 
     @property
     def google_sheet(self) -> str:
@@ -57,10 +71,12 @@ class Event:
     
     @google_sheet.setter
     def google_sheet(self, value: str):
-        id = self.id
-        EventTable.update(google_sheet=value).where(EventTable.id == id).execute()
-        self.table = EventTable.get_by_id(id)
+        self.__set_field(google_sheet=value)
         
+    def __set_field(self, **values):
+        id = self.id
+        EventTable.update(**values).where(EventTable.id == id).execute()
+        self.table = EventTable.get_by_id(id)
 
     @staticmethod
     def fetch(id: int) -> Event:
