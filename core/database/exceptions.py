@@ -12,3 +12,10 @@ class NotEnoughPermission(Exception):
 
 class UserAlreadyJoined(Exception):
     pass
+
+
+class TeamIsRequired(Exception):
+    pass
+
+class TeamNotFound(Exception):
+    pass

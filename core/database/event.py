@@ -9,6 +9,7 @@ from .exceptions import *
 
 from . import user
 from . import participant
+from . import team
 
 
 class Event:
@@ -77,6 +78,9 @@ class Event:
         id = self.id
         EventTable.update(**values).where(EventTable.id == id).execute()
         self.table = EventTable.get_by_id(id)
+
+    def teams(self) -> Iterator[team.Team]:
+        return map(lambda x: team.Team(x.id), self.table.teams)
 
     @staticmethod
     def fetch(id: int) -> Event:

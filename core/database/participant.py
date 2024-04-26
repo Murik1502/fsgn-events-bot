@@ -6,6 +6,7 @@ from .visit import Visit
 
 from . import user
 from . import event
+from . import team
 
 
 class Participant:
@@ -29,6 +30,12 @@ class Participant:
     @property
     def visit(self) -> Visit:
         return Visit(self.table.visit)
+    
+    @property
+    def team(self) -> team.Team:
+        if self.table.team is None:
+            return None
+        return team.Team(self.table.team.id)
 
     @visit.setter
     def visit(self, visit: Visit):

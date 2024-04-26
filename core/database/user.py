@@ -7,11 +7,13 @@ from .exceptions import *
 from .tables.usertable import UserTable
 from .tables.eventtable import EventTable
 from .tables.participanttable import ParticipantTable
+from .tables.teamtable import TeamTable
 from .eventtype import EventType
 from .visit import Visit
 
 from . import event
 from . import participant
+from . import team
 
 
 class User:
@@ -78,6 +80,9 @@ class User:
 
     def participation(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, self.table.participation)
+    
+    def teams(self) -> Iterator[team.Team]:
+        return map(lambda x: team.Team(x.id), self.table.teams)
 
     @staticmethod
     def create(
@@ -122,17 +127,34 @@ class User:
                 photo_id=photo_id,
             )
         )
+    
+    def create_team(self, event_id: int) -> tuple[team.Team, participant.Participant]:
+        e = event.Event.fetch(event_id)
+        if e.is_joined(self.id):
+            raise UserAlreadyJoined()
+        t = team.Team(
+            team.TeamTable.create(leader=self.id, event=event_id).id
+        )
+        return t, self.join(event_id, team_id=t.id)
+        
 
     def join(
-        self, event_id: int, visit: Visit = Visit.UNDEFINED
+        self, event_id: int, visit: Visit = Visit.UNDEFINED, team_id: int | None =  None
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
+        if e.type == EventType.TEAM and team_id is None:
+            raise TeamIsRequired()
+        if e.type == EventType.DEFAULT:
+            team_id = None
+        else:
+            team.Team.fetch(team_id)
         return participant.Participant(
             ParticipantTable.create(
                 user=self.id,
                 event=e.id,
                 visit=visit.value,
+                team=team_id,
             )
         )

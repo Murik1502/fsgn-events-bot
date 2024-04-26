@@ -6,3 +6,4 @@ from . import event
 from . import eventtype
 from . import visit
 from . import participant
+from . import team
