@@ -15,13 +15,17 @@ class Participant:
         self.table = table
 
     @property
+    def id(self) -> int:
+        return self.table.id
+
+    @property
     def user(self) -> user.User:
         return user.User(self.table.user)
 
     @property
     def event(self) -> event.Event:
         return event.Event(self.table.event)
-    
+
     @property
     def visit(self) -> Visit:
         return Visit(self.table.visit)

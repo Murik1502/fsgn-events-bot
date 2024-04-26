@@ -9,6 +9,5 @@ class ParticipantTable(BaseModel):
     event = ForeignKeyField(EventTable, backref="participants")
     visit = IntegerField()
 
-
     class Meta:
         table_name = "participants"

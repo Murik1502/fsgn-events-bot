@@ -51,6 +51,9 @@ class User:
     def events(self) -> Iterator[event.Event]:
         return map(event.Event, self.table.events)
 
+    def participation(self) -> Iterator[participant.Participant]:
+        return map(participant.Participant, self.table.participation)
+
     @staticmethod
     def create(
         first_name: str,
@@ -92,8 +95,10 @@ class User:
                 type=type.value,
             )
         )
-    
-    def join(self, event_id: int, visit: Visit = Visit.UNDEFINED) -> participant.Participant:
+
+    def join(
+        self, event_id: int, visit: Visit = Visit.UNDEFINED
+    ) -> participant.Participant:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
