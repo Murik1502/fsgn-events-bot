@@ -41,7 +41,6 @@ class Event:
 
     @staticmethod
     def fetch(id: int) -> Event:
-        print(EventTable.select().where(EventTable.id == id))
         model = EventTable.select().where(EventTable.id == id).first()
         if model is None:
             raise EventNotFound()

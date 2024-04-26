@@ -76,13 +76,13 @@ class User:
         return User(model)
 
     def create_event(
-        self, creator: int, name: str, description: str, date: datetime, type: EventType
+        self, name: str, description: str, date: datetime, type: EventType
     ) -> event.Event:
-        if User.fetch(creator).role != Role.ADMIN:
+        if User.fetch(self.id).role != Role.ADMIN:
             raise NotEnoughPermission()
         return event.Event(
             EventTable.create(
-                creator=creator,
+                creator=self.id,
                 name=name,
                 description=description,
                 date=date,
