@@ -82,7 +82,7 @@ class User:
         return User(model)
 
     def create_event(
-        self, name: str, description: str, date: datetime, type: EventType
+        self, name: str, description: str, date: datetime, type: EventType, google_sheet: str, photo_id: str,
     ) -> event.Event:
         if User.fetch(self.id).role != Role.ADMIN:
             raise NotEnoughPermission()
@@ -93,6 +93,8 @@ class User:
                 description=description,
                 date=date,
                 type=type.value,
+                google_sheet=google_sheet,
+                photo_id=photo_id,
             )
         )
 

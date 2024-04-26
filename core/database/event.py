@@ -40,6 +40,27 @@ class Event:
     @property
     def type(self) -> EventType:
         return EventType(self.table.type)
+    
+    @property
+    def photo_id(self) -> str:
+        return self.table.photo_id
+    
+    @photo_id.setter
+    def photo_id(self, value: str):
+        id = self.id
+        EventTable.update(photo_id=value).where(EventTable.id == id).execute()
+        self.table = EventTable.get_by_id(id)
+
+    @property
+    def google_sheet(self) -> str:
+        return self.table.google_sheet
+    
+    @google_sheet.setter
+    def google_sheet(self, value: str):
+        id = self.id
+        EventTable.update(google_sheet=value).where(EventTable.id == id).execute()
+        self.table = EventTable.get_by_id(id)
+        
 
     @staticmethod
     def fetch(id: int) -> Event:
@@ -57,6 +78,5 @@ class Event:
                 ParticipantTable.select().where(
                     ParticipantTable.user == user_id, ParticipantTable.event == self.id
                 )
-            )
-            > 0
+            ) > 0
         )
