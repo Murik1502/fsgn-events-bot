@@ -40,22 +40,6 @@ class Event:
         return EventType(self.table.type)
 
     @staticmethod
-    def create(
-        creator: int, name: str, description: str, date: datetime, type: EventType
-    ) -> Event:
-        if user.User.fetch(creator).role != Role.ADMIN:
-            raise NotEnoughPermission()
-        return Event(
-            EventTable.create(
-                creator=creator,
-                name=name,
-                description=description,
-                date=date,
-                type=type.value,
-            )
-        )
-
-    @staticmethod
     def fetch(id: int) -> Event:
         print(EventTable.select().where(EventTable.id == id))
         model = EventTable.select().where(EventTable.id == id).first()

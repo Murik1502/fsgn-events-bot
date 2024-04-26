@@ -1,9 +1,12 @@
 from __future__ import annotations
 from typing import Iterator
+from datetime import datetime
 
 from .role import Role
 from .exceptions import *
 from .tables.usertable import UserTable
+from .tables.eventtable import EventTable
+from .eventtype import EventType
 
 from . import event
 
@@ -71,3 +74,18 @@ class User:
         if model is None:
             raise UserNotFound()
         return User(model)
+
+    def create_event(
+        self, creator: int, name: str, description: str, date: datetime, type: EventType
+    ) -> event.Event:
+        if User.fetch(creator).role != Role.ADMIN:
+            raise NotEnoughPermission()
+        return event.Event(
+            EventTable.create(
+                creator=creator,
+                name=name,
+                description=description,
+                date=date,
+                type=type.value,
+            )
+        )
