@@ -9,7 +9,7 @@ class EventTable(BaseModel):
     description = TextField()
     photo_id = TextField()
     google_sheet = TextField()
-    date = DateField()
+    date = DateTimeField()
     type = CharField(20)
 
     class Meta:

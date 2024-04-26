@@ -138,21 +138,30 @@ class User:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
-        t = team.Team(team.TeamTable.create(leader=self.id, event=event_id).id)
-        return t, self.join(event_id, team_id=t.id)
+        t = team.Team(
+            team.TeamTable.create(
+                leader=self.id, event=event_id, code=team.Team.generate_code()
+            ).id
+        )
+        return t, self.join(event_id, team_code=t.code)
 
     def join(
-        self, event_id: int, visit: Visit = Visit.UNDEFINED, team_id: int | None = None
+        self,
+        event_id: int,
+        visit: Visit = Visit.UNDEFINED,
+        team_code: str | None = None,
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
-        if e.type == EventType.TEAM and team_id is None:
+        if e.type == EventType.TEAM and team_code is None:
             raise TeamIsRequired()
-        if e.type == EventType.DEFAULT:
-            team_id = None
-        else:
-            team.Team.fetch(team_id)
+        team_id: int | None = None
+        if e.type == EventType.TEAM:
+            t = team.Team.fetch_by_code(team_code)
+            if t.event.id != e.id:
+                raise TeamAnotherEvent()
+            team_id = t.id
         return participant.Participant(
             ParticipantTable.create(
                 user=self.id,

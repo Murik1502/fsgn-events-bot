@@ -20,3 +20,7 @@ class TeamIsRequired(Exception):
 
 class TeamNotFound(Exception):
     pass
+
+
+class TeamAnotherEvent(Exception):
+    pass
