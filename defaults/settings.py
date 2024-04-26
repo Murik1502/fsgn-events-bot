@@ -1,5 +1,6 @@
 import os
 from dataclasses import dataclass
+from peewee import PostgresqlDatabase
 
 
 @dataclass
