@@ -2,9 +2,9 @@ from __future__ import annotations
 from datetime import datetime
 
 from .tables.eventtable import EventTable
+from .tables.participanttable import ParticipantTable
 from .eventtype import EventType
 from .exceptions import *
-from .role import Role
 
 from . import user
 
@@ -45,3 +45,6 @@ class Event:
         if model is None:
             raise EventNotFound()
         return Event(model)
+
+    def is_joined(self, user_id: int) -> bool:
+        return len(ParticipantTable.select().where(ParticipantTable.user == user_id, ParticipantTable.event == self.id)) > 0

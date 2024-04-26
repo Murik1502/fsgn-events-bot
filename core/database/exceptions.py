@@ -8,3 +8,7 @@ class EventNotFound(Exception):
 
 class NotEnoughPermission(Exception):
     pass
+
+
+class UserAlreadyJoined(Exception):
+    pass

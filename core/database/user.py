@@ -6,9 +6,12 @@ from .role import Role
 from .exceptions import *
 from .tables.usertable import UserTable
 from .tables.eventtable import EventTable
+from .tables.participanttable import ParticipantTable
 from .eventtype import EventType
+from .visit import Visit
 
 from . import event
+from . import participant
 
 
 class User:
@@ -39,7 +42,7 @@ class User:
 
     @property
     def group(self) -> str:
-        return self.group
+        return self.table.group
 
     @property
     def role(self) -> Role:
@@ -87,5 +90,17 @@ class User:
                 description=description,
                 date=date,
                 type=type.value,
+            )
+        )
+    
+    def join(self, event_id: int, visit: Visit = Visit.UNDEFINED) -> participant.Participant:
+        e = event.Event.fetch(event_id)
+        if e.is_joined(self.id):
+            raise UserAlreadyJoined()
+        return participant.Participant(
+            ParticipantTable.create(
+                user=self.id,
+                event=e.id,
+                visit=visit.value,
             )
         )
