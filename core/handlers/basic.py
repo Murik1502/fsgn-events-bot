@@ -39,7 +39,7 @@ async def start_handler(message, state: FSMContext):
                 user_info = user.User.fetch_by_tg_id(message.from_user.id)
                 try:
                     if team_code and event_info.type == eventtype.EventType.TEAM:
-                        join_info = user.User.join(user_info, event_id, team_code=team_code)
+                        join_info = user.User.join(user_info, event_id, team_code=team_code, tg_tag=message.from_user.username)
                         await bot.send_message(chat_id=team_info.leader.telegram_id,
                                                text=f"@{message.from_user.username} присоединился к Вашей команде на мероприятие {event_info.name}!")
                         await message.answer(
@@ -50,7 +50,7 @@ async def start_handler(message, state: FSMContext):
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
                                                   f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}")
                     else:
-                        user.User.join(user_info, event_id)
+                        user.User.join(user_info, event_id, tg_tag=message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
 
                 except exceptions.UserAlreadyJoined:
@@ -68,9 +68,10 @@ async def start_handler(message, state: FSMContext):
             type_event = "Командное"
             if e.type == eventtype.EventType.DEFAULT:
                 type_event = "Одиночное"
-            if len(e.photo_id) > 5: #после чистки бд от мероприятий без картинок условие можно удалить
-                join_event = InlineKeyboardMarkup(inline_keyboard=[
-                    [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{e.id}'),
-                     ]
-                ], )
-                await message.answer_photo(photo=e.photo_id,caption=f"Название: {e.name}\nДата проведение: {e.date}\nОписание: {e.description}\nТип мероприятия: {type_event}",reply_markup=join_event)
+            join_event = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{e.id}'),
+                 ]
+            ], )
+            await message.answer_photo(photo=e.photo_id,
+                                       caption=f"Название: {e.name}\nДата проведения: {e.date}\nОписание: {e.description}\nТип мероприятия: {type_event}",
+                                       reply_markup=join_event)
