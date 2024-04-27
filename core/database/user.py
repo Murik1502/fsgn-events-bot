@@ -76,7 +76,7 @@ class User:
         return map(lambda x: event.Event(x.id), UserTable.get_by_id(self.id).events)
 
     def participation(self) -> Iterator[participant.Participant]:
-        return map(participant.Participant, UserTable.get_by_id(self.id).participation)
+        return map(lambda x: participant.Participant(x.id), UserTable.get_by_id(self.id).participation)
 
     def teams(self) -> Iterator[team.Team]:
         return map(lambda x: team.Team(x.id), UserTable.get_by_id(self.id).teams)
@@ -165,5 +165,5 @@ class User:
                 event=e.id,
                 visit=visit.value,
                 team=team_id,
-            )
+            ).id
         )
