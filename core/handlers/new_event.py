@@ -4,6 +4,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import FSInputFile, CallbackQuery
 
+from google_sheet.sheet_editor import Sheet
 from ..database import user, eventtype, role
 from ..utils.statesform import *
 from ..keyboards.inline import event_type, event_status
@@ -93,22 +94,33 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     date_event = datetime.datetime.strptime(data['date'], "%d.%m.%y %H:%M")
     type_event = eventtype.EventType.DEFAULT
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
+    await call.message.edit_caption(
+        caption=f"Название: {data['name']}\nДата проведения: {date_event}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+        reply_markup=None)
+    msg = await call.message.answer('Пожалуйста, подождите...')
+    if data['type'] == 'team':
+        sheet = Sheet(data['name'], team=True)
+        link = sheet.createSheet(['telegram_id', 'telegram_tag', 'ФИО', 'Группа', 'Команда', 'Подтвердил участие'],
+                                 [['', '', '', '', '', '']])
+    else:
+        sheet = Sheet(data['name'], team=False)
+        link = sheet.createSheet(['telegram_id', 'telegram_tag', 'ФИО', 'Группа', 'Подтвердил участие'],
+                                 [['', '', '', '', '']])
     if data['type'] == 'team':
         type_event = eventtype.EventType.TEAM
     event_info = user.User.create_event(
         photo_id=data['image'],
-        google_sheet='тут будет таблица',
+        google_sheet=link,
         description=data['description'],
         type=type_event,
         date=date_event,
         name=data['name'],
         self=user_info
     )
-    await call.message.edit_caption(
-        caption=f"Название: {data['name']}\nДата проведения: {date_event}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
-        reply_markup=None)
-    await call.message.answer('Мероприятяие успешно создано. Ссылка-приглашение:\n'
-                              f'https://t.me/fsgn_events_bot?start=event-{event_info.id}')
+    await msg.edit_text('Мероприятяие успешно создано. Ссылка-приглашение:\n'
+                        f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
+                        f'Ссылка на гугл-таблицу:\n'
+                        f'{link}')
 
 
 # Хэндлер на пересоздание мероприятия
