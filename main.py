@@ -3,8 +3,9 @@ import asyncio
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
-from core.handlers import basic, new_event,registartion, admin
-
+import core.database.user
+from core.handlers import basic, new_event, registration, admin
+from bot import bot
 from defaults.settings import settings
 from core.utils.commands import set_commands
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
@@ -31,12 +32,11 @@ async def start():
                                    format="%(astime)s - [%(levelname)s] - %(name)s - "
                                           "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s")
 
-    bot = Bot(token=settings.bots.bot_token)
     dp = Dispatcher(storage=MemoryStorage())
     start_sched(bot)
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-    dp.include_routers(basic.router, new_event.admin_router, registartion.reg_router, admin.give_admin_router)
+    dp.include_routers(basic.router, new_event.admin_router, registration.reg_router, admin.give_admin_router)
 
     try:
         await dp.start_polling(bot)
