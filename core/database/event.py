@@ -85,17 +85,11 @@ class Event:
         model = EventTable.get_or_none(id=id)
         if model is None:
             raise EventNotFound()
-        return Event(model)
+        return Event(model.id)
 
     @staticmethod
     def fetch_all() -> list[Event]:
-        events = []
-        models = EventTable.select()
-        if not models:
-            raise EventNotFound()
-        for model in models:
-            events.append(Event(model))
-        return events
+        return list(map(lambda x: Event(x.id), EventTable.select()))
 
     def participants(self) -> Iterator[participant.Participant]:
         return map(
