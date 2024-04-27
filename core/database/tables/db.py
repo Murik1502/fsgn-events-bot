@@ -1,7 +1,13 @@
 from defaults.settings import settings
 from peewee import PostgresqlDatabase, Model
+from playhouse.shortcuts import ReconnectMixin
 
-db = PostgresqlDatabase(
+
+class ReconnectDatabse(ReconnectMixin, PostgresqlDatabase):
+    pass
+
+
+db = ReconnectDatabse(
     database=settings.database.name,
     user=settings.database.user,
     password=settings.database.password,
