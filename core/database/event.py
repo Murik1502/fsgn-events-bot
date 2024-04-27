@@ -89,6 +89,16 @@ class Event:
             raise EventNotFound()
         return Event(model)
 
+    @staticmethod
+    def fetch_all() -> list[Event]:
+        events = []
+        models = EventTable.select()
+        if not models:
+            raise EventNotFound()
+        for model in models:
+            events.append(Event(model))
+        return events
+
     def participants(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, self.table.participants)
 
