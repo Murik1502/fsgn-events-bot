@@ -24,7 +24,7 @@ class Event:
 
     @property
     def creator(self) -> user.User:
-        return user.User(self.table.creator)
+        return user.User(self.table.creator.id)
 
     @property
     def name(self) -> str:

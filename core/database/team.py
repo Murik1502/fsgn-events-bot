@@ -22,7 +22,7 @@ class Team:
 
     @property
     def leader(self):
-        return user.User(TeamTable.get_by_id(self.id).leader)
+        return user.User(TeamTable.get_by_id(self.id).leader.id)
 
     @property
     def event(self):

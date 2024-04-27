@@ -15,24 +15,23 @@ from . import event
 from . import participant
 from . import team
 
-
 class User:
-    table: UserTable
+    __id: int
 
-    def __init__(self, table: UserTable) -> None:
-        self.table = table
+    def __init__(self, id: int) -> None:
+        self.__id = id
 
     @property
     def id(self) -> int:
-        return self.table.id
+        return self.__id
 
     @property
     def telegram_id(self) -> int:
-        return self.table.telegram_id
+        return UserTable.get_by_id(self.id).telegram_id
 
     @property
     def first_name(self) -> str:
-        return self.table.first_name
+        return UserTable.get_by_id(self.id).first_name
 
     @first_name.setter
     def first_name(self, first_name: str):
@@ -40,7 +39,7 @@ class User:
 
     @property
     def last_name(self) -> str:
-        return self.table.last_name
+        return UserTable.get_by_id(self.id).last_name
 
     @last_name.setter
     def last_name(self, last_name: str):
@@ -48,7 +47,7 @@ class User:
 
     @property
     def middle_name(self) -> str | None:
-        return self.table.middle_name
+        return UserTable.get_by_id(self.id).middle_name
 
     @middle_name.setter
     def middle_name(self, middle_name: str | None):
@@ -56,7 +55,7 @@ class User:
 
     @property
     def group(self) -> str:
-        return self.table.group
+        return UserTable.get_by_id(self.id).group
 
     @group.setter
     def group(self, group: str):
@@ -64,25 +63,23 @@ class User:
 
     @property
     def role(self) -> Role:
-        return Role(self.table.role)
+        return Role(UserTable.get_by_id(self.id).role)
 
     @role.setter
     def role(self, role: Role):
         self.__set_field(role=role.value)
 
     def __set_field(self, **values):
-        id = self.id
-        UserTable.update(**values).where(UserTable.id == id).execute()
-        self.table = UserTable.get_by_id(id)
+        UserTable.update(**values).where(UserTable.id == self.id).execute()
 
     def events(self) -> Iterator[event.Event]:
-        return map(event.Event, self.table.events)
+        return map(event.Event, UserTable.get_by_id(self.id).events)
 
     def participation(self) -> Iterator[participant.Participant]:
-        return map(participant.Participant, self.table.participation)
+        return map(participant.Participant, UserTable.get_by_id(self.id).participation)
 
     def teams(self) -> Iterator[team.Team]:
-        return map(lambda x: team.Team(x.id), self.table.teams)
+        return map(lambda x: team.Team(x.id), UserTable.get_by_id(self.id).teams)
 
     @staticmethod
     def create(
@@ -101,15 +98,15 @@ class User:
                 group=group,
                 telegram_id=telegram_id,
                 role=role.value,
-            )
+            ).id
         )
 
     @staticmethod
     def fetch(id: int) -> User:
-        model = UserTable.select().where(UserTable.id == id).first()
-        if model is None:
+        result = UserTable.get_or_none(id=id)
+        if result is None:
             raise UserNotFound()
-        return User(model)
+        return User(result.id)
 
     def create_event(
         self,
