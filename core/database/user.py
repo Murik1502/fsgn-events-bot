@@ -150,7 +150,7 @@ class User:
             ).id
         )
 
-    def create_team(self, event_id: int, tg_tag: str) -> tuple[team.Team, participant.Participant]:
+    def create_team(self, event_id: int, telegram_tag: str) -> tuple[team.Team, participant.Participant]:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
@@ -159,12 +159,12 @@ class User:
                 leader=self.id, event=event_id, code=team.Team.generate_code()
             ).id
         )
-        return t, self.join(event_id=event_id, team_code=t.code, tg_tag=tg_tag)
+        return t, self.join(event_id=event_id, team_code=t.code, telegram_tag=telegram_tag)
 
     def join(
             self,
             event_id: int,
-            tg_tag: str,
+            telegram_tag: str,
             visit: Visit = Visit.UNDEFINED,
             team_code: str | None = None,
     ) -> participant.Participant:
@@ -185,6 +185,6 @@ class User:
                 event=e.id,
                 visit=visit.value,
                 team=team_id,
-                tg_tag=tg_tag,
+                telegram_tag=telegram_tag,
             ).id
         )

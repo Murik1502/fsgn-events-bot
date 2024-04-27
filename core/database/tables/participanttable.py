@@ -9,7 +9,7 @@ class ParticipantTable(BaseModel):
     user = ForeignKeyField(UserTable, backref="participation")
     event = ForeignKeyField(EventTable, backref="participants")
     team = ForeignKeyField(TeamTable, backref="teammates", null=True)
-    tg_tag = CharField(50)
+    telegram_tag = CharField(50)
     visit = IntegerField()
 
     class Meta:

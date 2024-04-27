@@ -1,12 +1,10 @@
 from aiogram.filters import Command, StateFilter, state
-from aiogram import Router
+from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import FSInputFile, CallbackQuery
-from magic_filter import F
-import uuid
 
-from ..database import user, eventtype
+from ..database import user, eventtype, role
 from ..utils.statesform import *
 from ..keyboards.inline import event_type, event_status
 import datetime
@@ -17,7 +15,9 @@ admin_router = Router()
 # Хэндлер на команду /new_event
 @admin_router.message(Command('new_event'))
 async def new_event(message, state: FSMContext):
-    # тут должна быть проверка на наличие у пользователя админки
+    user_info = user.User.fetch_by_tg_id(message.from_user.id)
+    if user_info.role != role.Role.ADMIN:
+        return
     await state.set_state(CreateEvent.step_image)
     await state.update_data(id=1)
     await message.answer(text='Отправте картинку для мероприятия')
@@ -27,6 +27,7 @@ async def new_event(message, state: FSMContext):
 @admin_router.message(StateFilter(CreateEvent.step_image))
 async def register_handler(message, state: FSMContext):
     await state.update_data(image=message.photo[-1].file_id)
+    print(message.photo[-1].file_id)
     await state.set_state(CreateEvent.step_name)
     await message.answer(text='Отправте название мероприятия')
 
@@ -62,7 +63,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(type=call.data)
     await state.set_state(CreateEvent.step_date)
     await call.message.edit_text("Вы выбрали командный тип мероприятия", reply_markup=None)
-    await call.message.answer('Введите дату мероприятия:')
+    await call.message.answer('Введите дату мероприятия(в формате 23.01.23):')
 
 
 # Хэндлер на дату для мероприятия
@@ -77,11 +78,11 @@ async def register_handler(message, state: FSMContext):
 @admin_router.message(StateFilter(CreateEvent.step_time))
 async def register_handler(message, state: FSMContext):
     data = await state.get_data()
-    final_time = data['date']+" "+message.text
+    final_time = data['date'] + " " + message.text
     await state.update_data(date=final_time)
     data = await state.get_data()
     await message.answer_photo(data['image'],
-                               caption=f"Название: {data['name']}\nДата проведение: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+                               caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
                                reply_markup=event_status)
 
 
@@ -94,7 +95,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
     if data['type'] == 'team':
         type_event = eventtype.EventType.TEAM
-    user.User.create_event(
+    event_info = user.User.create_event(
         photo_id=data['image'],
         google_sheet='тут будет таблица',
         description=data['description'],
@@ -104,9 +105,10 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
         self=user_info
     )
     await call.message.edit_caption(
-        caption=f"Название: {data['name']}\nДата проведение: {date_event}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+        caption=f"Название: {data['name']}\nДата проведения: {date_event}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
         reply_markup=None)
-    await call.message.answer('Мероприятяие успешно созданно')
+    await call.message.answer('Мероприятяие успешно создано. Ссылка-приглашение:\n'
+                              f'https://t.me/fsgn_events_bot?start=event-{event_info.id}')
 
 
 # Хэндлер на пересоздание мероприятия
