@@ -62,4 +62,4 @@ async def start_handler(message, state: FSMContext):
 
     else:
         for e in event.Event.fetch_all():
-            print(e.name)
+            print(e.name, e.type, e.date, e.google_sheet, e.photo_id, e.description)
