@@ -15,6 +15,7 @@ from . import event
 from . import participant
 from . import team
 
+
 class User:
     __id: int
 
@@ -76,7 +77,10 @@ class User:
         return map(lambda x: event.Event(x.id), UserTable.get_by_id(self.id).events)
 
     def participation(self) -> Iterator[participant.Participant]:
-        return map(lambda x: participant.Participant(x.id), UserTable.get_by_id(self.id).participation)
+        return map(
+            lambda x: participant.Participant(x.id),
+            UserTable.get_by_id(self.id).participation,
+        )
 
     def teams(self) -> Iterator[team.Team]:
         return map(lambda x: team.Team(x.id), UserTable.get_by_id(self.id).teams)

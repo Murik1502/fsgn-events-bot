@@ -11,6 +11,7 @@ from . import user
 from . import participant
 from . import team
 
+
 class Event:
     __id: int
 
@@ -87,7 +88,10 @@ class Event:
         return Event(model)
 
     def participants(self) -> Iterator[participant.Participant]:
-        return map(lambda x: participant.Participant(x.id), EventTable.get_by_id(self.id).participants)
+        return map(
+            lambda x: participant.Participant(x.id),
+            EventTable.get_by_id(self.id).participants,
+        )
 
     def is_joined(self, user_id: int) -> bool:
         return (

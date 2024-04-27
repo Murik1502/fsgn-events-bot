@@ -29,7 +29,10 @@ class Team:
         return event.Event(TeamTable.get_by_id(self.id).event.id)
 
     def teammates(self) -> Iterator[participant.Participant]:
-        return map(lambda x: participant.Participant(x.id), TeamTable.get_by_id(self.id).teammates)
+        return map(
+            lambda x: participant.Participant(x.id),
+            TeamTable.get_by_id(self.id).teammates,
+        )
 
     @property
     def code(self):
