@@ -1,10 +1,18 @@
+from typing import Any
 from defaults.settings import settings
 from peewee import PostgresqlDatabase, Model
-from playhouse.shortcuts import ReconnectMixin
 
 
-class ReconnectDatabase(ReconnectMixin, PostgresqlDatabase):
-    pass
+class ReconnectDatabase(PostgresqlDatabase):
+    def execute_sql(self, sql, params: Any | None = ..., commit=...):
+        try:
+            cur = self.connection().cursor()
+            cur.execute('SELECT 1')
+        except:
+            if self.connection().closed > 0:
+                self.close()
+                self.connect()
+        return super().execute_sql(sql, params, commit)
 
 
 db = ReconnectDatabase(
