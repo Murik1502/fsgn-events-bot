@@ -75,7 +75,7 @@ async def register_handler(message, state: FSMContext):
                                reply_markup=event_status)
 
 
-# Хэндлер на тип для мероприятия
+# Хэндлер для сохранения мероприятия
 @admin_router.callback_query(F.data == 'add event')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
@@ -99,7 +99,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     await call.message.answer('Мероприятяие успешно созданно')
 
 
-# Хэндлер на тип для мероприятия
+# Хэндлер на пересоздание мероприятия
 @admin_router.callback_query(F.data == 'create again')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     await call.message.edit_caption(caption='Пожалуйста введите данные для этого мероприятия заново', reply_markup=None)
