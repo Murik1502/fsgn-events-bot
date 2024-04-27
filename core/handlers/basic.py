@@ -1,11 +1,13 @@
 import datetime
+
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+
 from bot import bot
 from aiogram.filters import Command
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
 
 from ..utils.statesform import *
-from ..keyboards.inline import *
 from ..handlers.registration import *
 from core.database import *
 
@@ -63,4 +65,12 @@ async def start_handler(message, state: FSMContext):
 
     else:
         for e in event.Event.fetch_all():
-            print(e.name, e.type, e.date, e.google_sheet, e.photo_id, e.description)
+            type_event = "Командное"
+            if e.type == eventtype.EventType.DEFAULT:
+                type_event = "Одиночное"
+            if len(e.photo_id) > 5: #после чистки бд от мероприятий без картинок условие можно удалить
+                join_event = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{e.id}'),
+                     ]
+                ], )
+                await message.answer_photo(photo=e.photo_id,caption=f"Название: {e.name}\nДата проведение: {e.date}\nОписание: {e.description}\nТип мероприятия: {type_event}",reply_markup=join_event)
