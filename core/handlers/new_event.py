@@ -69,6 +69,16 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 @admin_router.message(StateFilter(CreateEvent.step_date))
 async def register_handler(message, state: FSMContext):
     await state.update_data(date=message.text)
+    await message.answer('Введите время для мероприятия(в формате 12:30)')
+    await state.set_state(CreateEvent.step_time)
+
+
+# Хэндлер на время для мероприятия
+@admin_router.message(StateFilter(CreateEvent.step_time))
+async def register_handler(message, state: FSMContext):
+    data = await state.get_data()
+    final_time = data['date']+" "+message.text
+    await state.update_data(date=final_time)
     data = await state.get_data()
     await message.answer_photo(data['image'],
                                caption=f"Название: {data['name']}\nДата проведение: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
@@ -79,7 +89,7 @@ async def register_handler(message, state: FSMContext):
 @admin_router.callback_query(F.data == 'add event')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    date_event = datetime.datetime.strptime(data['date'], "%d.%m.%y")
+    date_event = datetime.datetime.strptime(data['date'], "%d.%m.%y %H:%M")
     type_event = eventtype.EventType.DEFAULT
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
     if data['type'] == 'team':
