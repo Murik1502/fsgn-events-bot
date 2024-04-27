@@ -8,12 +8,16 @@ class StatesForm(StatesGroup):
 class CreateEvent(StatesGroup):
     step_image = State()
     step2_description = State()
+    step_date = State()
 
 
 class Registration(StatesGroup):
     step_start_reg = State()
-    step_name = State()
-    step2_surname = State()
+    first_name = State()
+    second_name = State()
+    middle_name = State()
+    group = State()
+    event_id = State()
 
 
 class StartStates(StatesGroup):
