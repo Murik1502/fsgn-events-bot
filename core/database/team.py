@@ -22,14 +22,17 @@ class Team:
 
     @property
     def leader(self):
-        return user.User(TeamTable.get_by_id(self.id).leader)
+        return user.User(TeamTable.get_by_id(self.id).leader.id)
 
     @property
     def event(self):
-        return event.Event(TeamTable.get_by_id(self.id).event)
+        return event.Event(TeamTable.get_by_id(self.id).event.id)
 
     def teammates(self) -> Iterator[participant.Participant]:
-        return map(participant.Participant, TeamTable.get_by_id(self.id).teammates)
+        return map(
+            lambda x: participant.Participant(x.id),
+            TeamTable.get_by_id(self.id).teammates,
+        )
 
     @property
     def code(self):
