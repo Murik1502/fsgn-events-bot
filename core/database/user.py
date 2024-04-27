@@ -111,6 +111,13 @@ class User:
             raise UserNotFound()
         return User(model)
 
+    @staticmethod
+    def fetch_by_tg_id(id: int) -> User:
+        model = UserTable.select().where(UserTable.telegram_id == id).first()
+        if model is None:
+            raise UserNotFound()
+        return User(model)
+
     def create_event(
         self,
         name: str,
