@@ -87,12 +87,12 @@ class User:
 
     @staticmethod
     def create(
-        first_name: str,
-        last_name: str,
-        middle_name: str | None,
-        group: str,
-        telegram_id: int,
-        role: Role = Role.DEFAULT,
+            first_name: str,
+            last_name: str,
+            middle_name: str | None,
+            group: str,
+            telegram_id: int,
+            role: Role = Role.DEFAULT,
     ) -> User:
         return User(
             UserTable.create(
@@ -119,14 +119,22 @@ class User:
             raise UserNotFound()
         return User(model)
 
+    @staticmethod
+    def get_user_by_credentials(first_name: str, last_name: str) -> User:
+        model = UserTable.select().where(
+            UserTable.first_name == first_name and UserTable.last_name == last_name).first()
+        if model is None:
+            raise UserNotFound()
+        return User(model)
+
     def create_event(
-        self,
-        name: str,
-        description: str,
-        date: datetime,
-        type: EventType,
-        google_sheet: str,
-        photo_id: str,
+            self,
+            name: str,
+            description: str,
+            date: datetime,
+            type: EventType,
+            google_sheet: str,
+            photo_id: str,
     ) -> event.Event:
         if User.fetch(self.id).role != Role.ADMIN:
             raise NotEnoughPermission()
@@ -154,10 +162,11 @@ class User:
         return t, self.join(event_id, team_code=t.code)
 
     def join(
-        self,
-        event_id: int,
-        visit: Visit = Visit.UNDEFINED,
-        team_code: str | None = None,
+            self,
+            event_id: int,
+            tg_tag: str,
+            visit: Visit = Visit.UNDEFINED,
+            team_code: str | None = None,
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
@@ -176,5 +185,6 @@ class User:
                 event=e.id,
                 visit=visit.value,
                 team=team_id,
+                tg_tag=tg_tag,
             ).id
         )
