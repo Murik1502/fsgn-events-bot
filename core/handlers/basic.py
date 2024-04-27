@@ -17,14 +17,15 @@ router = Router()
 async def start_handler(message, state: FSMContext):
     cmd = message.text.split()
     if len(cmd) == 2:
-        parts = cmd[1].split("-")
-        cmd_dict = {}
-        for i in range(0, len(parts), 2):
-            cmd_dict[parts[i]] = parts[i + 1]
-        event_id = cmd_dict.get('event')
-        team_code = cmd_dict.get('team')
-        print(event_id, team_code)
         try:
+            parts = cmd[1].split("-")
+            cmd_dict = {}
+            for i in range(0, len(parts), 2):
+                cmd_dict[parts[i]] = parts[i + 1]
+            event_id = cmd_dict.get('event')
+            team_code = cmd_dict.get('team')
+            print(event_id, team_code)
+
             event_info = event.Event.fetch(event_id)
             if team_code:
                 team_info = team.Team.fetch_by_code(team_code)
@@ -57,7 +58,7 @@ async def start_handler(message, state: FSMContext):
                 await state.update_data(event_id=event_id, team_code=team_code, event_info=event_info)
                 await reg(message=message, state=state)
 
-        except exceptions.EventNotFound or exceptions.TeamNotFound or exceptions.TeamAnotherEvent:
+        except (IndexError, exceptions.EventNotFound, exceptions.TeamNotFound, exceptions.TeamAnotherEvent):
             await message.answer(text="Ссылка недействительна")
 
     else:
