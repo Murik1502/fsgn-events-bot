@@ -27,6 +27,9 @@ class Participant:
     def event(self) -> event.Event:
         return event.Event(ParticipantTable.get_by_id(self.id).event.id)
 
+    def tg_tag(self) -> str:
+        return ParticipantTable.get_by_id(self.id).tg_tag
+
     @property
     def visit(self) -> Visit:
         return Visit(ParticipantTable.get_by_id(self.id).visit)
