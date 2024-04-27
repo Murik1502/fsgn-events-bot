@@ -1,5 +1,5 @@
 import pandas as pd
-from settings import client
+from google_sheet.settings import client
 
 
 def number_to_letter(df):
