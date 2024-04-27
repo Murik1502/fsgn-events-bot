@@ -11,24 +11,23 @@ from . import user
 from . import participant
 from . import team
 
-
 class Event:
-    table: EventTable
+    __id: int
 
-    def __init__(self, table: EventTable) -> None:
-        self.table = table
+    def __init__(self, id: int) -> None:
+        self.__id = id
 
     @property
     def id(self) -> int:
-        return self.table.id
+        return self.__id
 
     @property
     def creator(self) -> user.User:
-        return user.User(self.table.creator.id)
+        return user.User(EventTable.get_by_id(self.id).creator.id)
 
     @property
     def name(self) -> str:
-        return self.table.name
+        return EventTable.get_by_id(self.id).name
 
     @name.setter
     def name(self, name: str):
@@ -36,7 +35,7 @@ class Event:
 
     @property
     def description(self) -> str:
-        return self.table.description
+        return EventTable.get_by_id(self.id).description
 
     @description.setter
     def description(self, description: str):
@@ -44,7 +43,7 @@ class Event:
 
     @property
     def date(self) -> datetime:
-        return self.table.date
+        return EventTable.get_by_id(self.id).date
 
     @date.setter
     def date(self, date: datetime):
@@ -52,7 +51,7 @@ class Event:
 
     @property
     def type(self) -> EventType:
-        return EventType(self.table.type)
+        return EventType(EventTable.get_by_id(self.id).type)
 
     @type.setter
     def type(self, type: EventType):
@@ -60,7 +59,7 @@ class Event:
 
     @property
     def photo_id(self) -> str:
-        return self.table.photo_id
+        return EventTable.get_by_id(self.id).photo_id
 
     @photo_id.setter
     def photo_id(self, value: str):
@@ -68,29 +67,27 @@ class Event:
 
     @property
     def google_sheet(self) -> str:
-        return self.table.google_sheet
+        return EventTable.get_by_id(self.id).google_sheet
 
     @google_sheet.setter
     def google_sheet(self, value: str):
         self.__set_field(google_sheet=value)
 
     def __set_field(self, **values):
-        id = self.id
-        EventTable.update(**values).where(EventTable.id == id).execute()
-        self.table = EventTable.get_by_id(id)
+        EventTable.update(**values).where(EventTable.id == self.id).execute()
 
     def teams(self) -> Iterator[team.Team]:
-        return map(lambda x: team.Team(x.id), self.table.teams)
+        return map(lambda x: team.Team(x.id), EventTable.get_by_id(self.id).teams)
 
     @staticmethod
     def fetch(id: int) -> Event:
-        model = EventTable.select().where(EventTable.id == id).first()
+        model = EventTable.get_or_none(id=id)
         if model is None:
             raise EventNotFound()
         return Event(model)
 
     def participants(self) -> Iterator[participant.Participant]:
-        return map(participant.Participant, self.table.participants)
+        return map(participant.Participant, EventTable.get_by_id(self.id).participants)
 
     def is_joined(self, user_id: int) -> bool:
         return (

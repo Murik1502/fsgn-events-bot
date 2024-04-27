@@ -20,12 +20,12 @@ class Participant:
         return self.table.id
 
     @property
-    def user(self) -> user.DepracatedUser:
-        return user.DepracatedUser(self.table.user)
+    def user(self) -> user.User:
+        return user.User(self.table.user.id)
 
     @property
-    def event(self) -> event.Event:
-        return event.Event(self.table.event)
+    def event(self) -> event.DeprecatedEvent:
+        return event.Event(self.table.event.id)
 
     @property
     def visit(self) -> Visit:

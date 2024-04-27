@@ -26,7 +26,7 @@ class Team:
 
     @property
     def event(self):
-        return event.Event(TeamTable.get_by_id(self.id).event)
+        return event.Event(TeamTable.get_by_id(self.id).event.id)
 
     def teammates(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, TeamTable.get_by_id(self.id).teammates)

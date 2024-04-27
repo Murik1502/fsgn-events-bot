@@ -73,7 +73,7 @@ class User:
         UserTable.update(**values).where(UserTable.id == self.id).execute()
 
     def events(self) -> Iterator[event.Event]:
-        return map(event.Event, UserTable.get_by_id(self.id).events)
+        return map(lambda x: event.Event(x.id), UserTable.get_by_id(self.id).events)
 
     def participation(self) -> Iterator[participant.Participant]:
         return map(participant.Participant, UserTable.get_by_id(self.id).participation)
@@ -128,7 +128,7 @@ class User:
                 type=type.value,
                 google_sheet=google_sheet,
                 photo_id=photo_id,
-            )
+            ).id
         )
 
     def create_team(self, event_id: int) -> tuple[team.Team, participant.Participant]:
