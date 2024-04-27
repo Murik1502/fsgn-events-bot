@@ -10,44 +10,46 @@ from . import team
 
 
 class Participant:
-    table: ParticipantTable
+    __id: int
 
-    def __init__(self, table: ParticipantTable) -> None:
-        self.table = table
+    def __init__(self, id: int) -> None:
+        self.__id = id
 
     @property
     def id(self) -> int:
-        return self.table.id
+        return self.__id
 
     @property
     def user(self) -> user.User:
-        return user.User(self.table.user)
+        return user.User(ParticipantTable.get_by_id(self.id).user.id)
 
     @property
     def event(self) -> event.Event:
-        return event.Event(self.table.event)
+        return event.Event(ParticipantTable.get_by_id(self.id).event.id)
+
+    def tg_tag(self) -> str:
+        return ParticipantTable.get_by_id(self.id).tg_tag
 
     @property
     def visit(self) -> Visit:
-        return Visit(self.table.visit)
+        return Visit(ParticipantTable.get_by_id(self.id).visit)
 
     @property
     def team(self) -> team.Team:
-        if self.table.team is None:
+        result = ParticipantTable.get_by_id(self.id)
+        if result.team is None:
             return None
-        return team.Team(self.table.team.id)
+        return team.Team(result.team.id)
 
     @visit.setter
     def visit(self, visit: Visit):
-        id = self.id
         ParticipantTable.update(visit=visit.value).where(
-            ParticipantTable.id == id
+            ParticipantTable.id == self.id
         ).execute()
-        self.table = ParticipantTable.select().where(ParticipantTable.id == id).first()
 
     @staticmethod
     def fetch(id: int) -> Participant:
-        model = ParticipantTable.select().where(ParticipantTable.id == id).first()
+        model = ParticipantTable.get_or_none(id=id)
         if model is None:
             raise UserNotFound()
-        return Participant(model)
+        return Participant(model.id)
