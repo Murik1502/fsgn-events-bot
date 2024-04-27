@@ -24,14 +24,14 @@ async def reg(message, state: FSMContext):
 @reg_router.message(StateFilter(Registration.first_name))
 async def register_handler(message, state: FSMContext):
     await state.set_state(Registration.second_name)
-    await state.update_data(first_name=message.text)
+    await state.update_data(first_name=message.text.capitalize())
     await message.answer(text='Введите фамилию:')
 
 
 # Хэндлер на фамилию пользователя
 @reg_router.message(StateFilter(Registration.second_name))
 async def register_handler(message, state: FSMContext):
-    await state.update_data(second_name=message.text)
+    await state.update_data(second_name=message.text.capitalize())
     await state.set_state(Registration.middle_name)
     await message.answer("Введите отчество:")
 
@@ -39,7 +39,7 @@ async def register_handler(message, state: FSMContext):
 # Хэндлер на отчество пользователя
 @reg_router.message(StateFilter(Registration.middle_name))
 async def register_handler(message, state: FSMContext):
-    await state.update_data(middle_name=message.text)
+    await state.update_data(middle_name=message.text.capitalize())
     await state.set_state(Registration.group)
     await message.answer('Введите учебнуюю групп в формате(СГН3-21Б):')
 
@@ -62,14 +62,14 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
                                  middle_name=data['middle_name'],
                                  group=data['group'],
                                  telegram_id=call.from_user.id,
-                                 role=role.Role.ADMIN)
-    team_code = data['team_code']
-    event_id = data['event_id']
-    event_info = data['event_info']
+                                 role=role.Role.DEFAULT)
+    team_code = data.get('team_code')
+    event_id = data.get('event_id')
+    event_info = data.get('event_info')
     team_info = data.get('team_info')
 
     if team_code and event_info.type == eventtype.EventType.TEAM:
-        join_info = user.User.join(user_info, event_id, team_code=team_code)
+        join_info = user.User.join(user_info, event_id, team_code=team_code, tg_tag=call.from_user.username)
         await bot.send_message(chat_id=team_info.leader.telegram_id,
                                text=f"@{call.from_user.username} присоединился к Вашей команде на мероприятие {event_info.name}!")
         await call.message.answer(
@@ -80,7 +80,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
                                        f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}")
     else:
-        user.User.join(user_info, event_id)
+        user.User.join(user_info, event_id, tg_tag=call.from_user.username)
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
 
     await state.clear()
