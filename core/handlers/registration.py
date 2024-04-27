@@ -67,7 +67,9 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
     event_id = data.get('event_id')
     event_info = data.get('event_info')
     team_info = data.get('team_info')
-
+    if event_id is None:
+        await call.message.answer("Вы успешно зарегестрировались!")
+        return
     if team_code and event_info.type == eventtype.EventType.TEAM:
         join_info = user.User.join(user_info, event_id, team_code=team_code, telegram_tag=call.from_user.username)
         await bot.send_message(chat_id=team_info.leader.telegram_id,
