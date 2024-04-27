@@ -89,6 +89,9 @@ class Event:
 
     @staticmethod
     def fetch_all() -> list[Event]:
+        query = EventTable.select()
+        if not query.exists():
+            raise EventNotFound()
         return list(map(lambda x: Event(x.id), EventTable.select()))
 
     def participants(self) -> Iterator[participant.Participant]:
