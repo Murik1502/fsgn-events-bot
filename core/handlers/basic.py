@@ -46,10 +46,9 @@ async def start_handler(message, state: FSMContext):
                         await message.answer(
                             text=f"Вы присоединились к команде {team_info.leader.first_name} на мероприятие {event_info.name}!\n")
                     elif event_info.type == eventtype.EventType.TEAM:
-                        created_team_info = user.User.create_team(user_info, event_id, message.from_user.id)[0]
-
+                        created_team_info = user.User.create_team(user_info, event_id, message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
-                                                  f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}")
+                                                  f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info[0].code}")
                     else:
                         user.User.join(user_info, event_id, telegram_tag=message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
