@@ -121,7 +121,6 @@ class Sheet:
         self.link = sheet.url
         sheet.share(None, perm_type='anyone', role='writer')
         worksheet = client.open_by_url(self.link).sheet1
-
         df = pd.DataFrame(data, columns=title)
         worksheet.update([df.columns.values.tolist()] + df.values.tolist())
         style_sheet(worksheet, df)
@@ -163,10 +162,11 @@ class Sheet:
             return worksheet.row_values(1)
         else:
             sheetData = worksheet.get_all_values()
-            df = pd.DataFrame(sheetData[1:], columns=sheetData[0])
-            new_data_df = pd.DataFrame(data, columns=df.columns)
-            df = pd.concat([df, new_data_df], ignore_index=True)
-            df.sort_values(by='Команда', inplace=True)  # Пересортировка после добавления новых данных
+            df = pd.DataFrame(data, columns=sheetData[0])
+            try:
+                df.sort_values(by='Команда', inplace=True)  # Пересортировка после добавления новых данных
+            except:
+                pass
             worksheet.clear()
             requests = [{
                 "updateCells": {
@@ -183,7 +183,6 @@ class Sheet:
 
             worksheet.spreadsheet.batch_update({'requests': requests})
             worksheet.update([df.columns.values.tolist()] + df.values.tolist())
-
             if self.team:
                 last_indices = df[df['Команда'] != df['Команда'].shift(-1)].index.tolist()
                 for index in last_indices:
@@ -262,10 +261,11 @@ from google_sheets import Sheet
 
 Далее смотри пример использование класса и документацию по классу
 Пример:
+
 a = Sheet('Test1', True)
 print(a.createSheet(['id', 'Имя', 'Группа', 'Команда'],
-                    [['1', 'Максим', '23', '1'], ['4', 'Ильдар', '23', '1'], ['7', 'Влад', '24', '2'],
-                     ['10', 'Алексей', '22', '3']]))
+                    [['', '', '', '']]))
 a.updateSheet([['15', 'Маша', '12', '3']])
 a.deleteUsers(['4'], 0)
+
 """
