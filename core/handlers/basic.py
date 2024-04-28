@@ -29,6 +29,8 @@ async def start_handler(message, state: FSMContext):
             print(event_id, team_code)
 
             event_info = event.Event.fetch(event_id)
+            if event_info.date.date() < datetime.date.today():
+                raise exceptions.EventOutOfDate
             if team_code:
                 team_info = team.Team.fetch_by_code(team_code)
                 await state.update_data(team_info=team_info)
@@ -62,6 +64,8 @@ async def start_handler(message, state: FSMContext):
 
         except (IndexError, exceptions.EventNotFound, exceptions.TeamNotFound, exceptions.TeamAnotherEvent):
             await message.answer(text="Ссылка недействительна")
+        except exceptions.EventOutOfDate:
+            await message.answer(text=f"Мероприятие уже закончилось (")
 
     else:
         try:
@@ -69,14 +73,18 @@ async def start_handler(message, state: FSMContext):
             try:
                 all_events = InlineKeyboardMarkup(inline_keyboard=[])
                 for e in event.Event.fetch_all():
-                    all_events.inline_keyboard.append(
-                        [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
-                                              callback_data=f"more info {e.id}")])
+                    if e.date.date() >= datetime.date.today():
+                        all_events.inline_keyboard.append(
+                            [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
+                                                  callback_data=f"more info {e.id}")])
+                if len(all_events.inline_keyboard) == 0:
+                    raise exceptions.EventNotFound
+
                 await message.answer(
                     "Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
                     reply_markup=all_events)
             except exceptions.EventNotFound:
-                await message.answer("На данный момент нет активных мероприятий(")
+                await message.answer("На данный момент нет активных мероприятий (")
         except exceptions.UserNotFound:
             await reg(message, state)
     await message.delete()
@@ -105,11 +113,18 @@ async def more_info(call: CallbackQuery):
 @router.callback_query(F.data.contains("go back"))
 async def go_back(call: CallbackQuery):
     await call.message.delete()
-    all_events = InlineKeyboardMarkup(inline_keyboard=[])
-    for e in event.Event.fetch_all():
-        all_events.inline_keyboard.append(
-            [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
-                                  callback_data=f"more info {e.id}")])
-    await call.message.answer(
-        "Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
-        reply_markup=all_events)
+    try:
+        all_events = InlineKeyboardMarkup(inline_keyboard=[])
+        for e in event.Event.fetch_all():
+            if e.date.date() >= datetime.date.today():
+                all_events.inline_keyboard.append(
+                    [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
+                                          callback_data=f"more info {e.id}")])
+        if len(all_events.inline_keyboard) == 0:
+            raise exceptions.EventNotFound
+
+        await call.message.answer(
+            "Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
+            reply_markup=all_events)
+    except exceptions.EventNotFound:
+        await call.message.answer("На данный момент нет активных мероприятий (")

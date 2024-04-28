@@ -16,7 +16,7 @@ async def sheet(bot: Bot):
     except exceptions.EventNotFound:
         return
     for e in events:
-        if e.date < datetime.datetime.now():
+        if e.date.date() >= datetime.date.today():
             try:
                 if e.type == eventtype.EventType.TEAM:
                     a = Sheet(e.name, True, link=e.google_sheet)

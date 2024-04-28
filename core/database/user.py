@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Iterator
-from datetime import datetime
+import datetime
 
 from .role import Role
 from .exceptions import *
@@ -169,6 +169,8 @@ class User:
             team_code: str | None = None,
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
+        if e.date.date() < datetime.date.today():
+            raise EventOutOfDate()
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
         if e.type == EventType.TEAM and team_code is None:
