@@ -1,9 +1,13 @@
 import betterlogging as logging
 import asyncio
 from aiogram import Bot, Dispatcher
+from aiogram.fsm.storage.memory import MemoryStorage
+
+from core.handlers import basic, new_event, registration, admin
+from bot import bot
 from defaults.settings import settings
 from core.utils.commands import set_commands
-from cache.apsched import scheduler
+from cache.apsched import sheet, scheduler
 
 
 async def start_bot(bot: Bot):
@@ -20,12 +24,13 @@ async def start():
                                    format="%(astime)s - [%(levelname)s] - %(name)s - "
                                           "(%(filename)s).%(funcName)s(%(lineno)d) - %(message)s")
 
-    bot = Bot(token=settings.bots.bot_token)
-    dp = Dispatcher()
+    dp = Dispatcher(storage=MemoryStorage())
+
     scheduler.sched.start()
 
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
+    dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, )
 
     try:
         await dp.start_polling(bot)

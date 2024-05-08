@@ -1,13 +1,12 @@
 from __future__ import annotations
 from typing import Iterator
-from datetime import datetime
+import datetime
 
 from .role import Role
 from .exceptions import *
 from .tables.usertable import UserTable
 from .tables.eventtable import EventTable
 from .tables.participanttable import ParticipantTable
-from .tables.teamtable import TeamTable
 from .eventtype import EventType
 from .visit import Visit
 
@@ -87,12 +86,12 @@ class User:
 
     @staticmethod
     def create(
-        first_name: str,
-        last_name: str,
-        middle_name: str | None,
-        group: str,
-        telegram_id: int,
-        role: Role = Role.DEFAULT,
+            first_name: str,
+            last_name: str,
+            middle_name: str | None,
+            group: str,
+            telegram_id: int,
+            role: Role = Role.DEFAULT,
     ) -> User:
         return User(
             UserTable.create(
@@ -112,14 +111,29 @@ class User:
             raise UserNotFound()
         return User(result.id)
 
+    @staticmethod
+    def fetch_by_tg_id(id: int) -> User:
+        model = UserTable.select().where(UserTable.telegram_id == id).first()
+        if model is None:
+            raise UserNotFound()
+        return User(model)
+
+    @staticmethod
+    def get_user_by_credentials(first_name: str, last_name: str) -> User:
+        model = UserTable.select().where(
+            UserTable.first_name == first_name and UserTable.last_name == last_name).first()
+        if model is None:
+            raise UserNotFound()
+        return User(model)
+
     def create_event(
-        self,
-        name: str,
-        description: str,
-        date: datetime,
-        type: EventType,
-        google_sheet: str,
-        photo_id: str,
+            self,
+            name: str,
+            description: str,
+            date: datetime,
+            type: EventType,
+            google_sheet: str,
+            photo_id: str,
     ) -> event.Event:
         if User.fetch(self.id).role != Role.ADMIN:
             raise NotEnoughPermission()
@@ -135,7 +149,7 @@ class User:
             ).id
         )
 
-    def create_team(self, event_id: int) -> tuple[team.Team, participant.Participant]:
+    def create_team(self, event_id: int, telegram_tag: str) -> tuple[team.Team, participant.Participant]:
         e = event.Event.fetch(event_id)
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
@@ -144,15 +158,18 @@ class User:
                 leader=self.id, event=event_id, code=team.Team.generate_code()
             ).id
         )
-        return t, self.join(event_id, team_code=t.code)
+        return t, self.join(event_id=event_id, team_code=t.code, telegram_tag=telegram_tag)
 
     def join(
-        self,
-        event_id: int,
-        visit: Visit = Visit.UNDEFINED,
-        team_code: str | None = None,
+            self,
+            event_id: int,
+            telegram_tag: str,
+            visit: Visit = Visit.UNDEFINED,
+            team_code: str | None = None,
     ) -> participant.Participant:
         e = event.Event.fetch(event_id)
+        if e.date.date() < datetime.date.today():
+            raise EventOutOfDate()
         if e.is_joined(self.id):
             raise UserAlreadyJoined()
         if e.type == EventType.TEAM and team_code is None:
@@ -169,5 +186,6 @@ class User:
                 event=e.id,
                 visit=visit.value,
                 team=team_id,
+                telegram_tag=telegram_tag,
             ).id
         )

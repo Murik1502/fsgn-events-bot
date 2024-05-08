@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass
-from peewee import PostgresqlDatabase
 
 
 @dataclass
@@ -21,7 +20,7 @@ class Database:
 @dataclass
 class Settings:
     bots: Bots
-    database: Database
+#    database: Database
 
 
 def get_settings():
@@ -30,14 +29,16 @@ def get_settings():
             bot_token=os.getenv("BOT_TOKEN"),
             admin_id=int(os.getenv("ADMIN_ID")),
         ),
-        database=Database(
-            name=os.getenv("POSTGRES_NAME"),
-            user=os.getenv("POSTGRES_USER"),
-            password=os.getenv("POSTGRES_PASSWORD"),
-            host=os.getenv("POSTGRES_HOST"),
-            port=int(os.getenv("POSTGRES_PORT")),
-        ),
+        # database=Database(
+        #     name=os.getenv("POSTGRES_NAME"),
+        #     user=os.getenv("POSTGRES_USER"),
+        #     password=os.getenv("POSTGRES_PASSWORD"),
+        #     host=os.getenv("POSTGRES_HOST"),
+        #     port=int(os.getenv("POSTGRES_PORT")),
+        # ),
     )
 
+from cache.setenv import set_env
+set_env()
 
 settings = get_settings()

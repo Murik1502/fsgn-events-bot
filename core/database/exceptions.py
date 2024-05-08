@@ -24,3 +24,7 @@ class TeamNotFound(Exception):
 
 class TeamAnotherEvent(Exception):
     pass
+
+
+class EventOutOfDate(Exception):
+    pass

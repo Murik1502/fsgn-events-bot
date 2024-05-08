@@ -28,6 +28,10 @@ class Participant:
         return event.Event(ParticipantTable.get_by_id(self.id).event.id)
 
     @property
+    def telegram_tag(self) -> str:
+        return ParticipantTable.get_by_id(self.id).telegram_tag
+
+    @property
     def visit(self) -> Visit:
         return Visit(ParticipantTable.get_by_id(self.id).visit)
 
