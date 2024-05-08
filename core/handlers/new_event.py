@@ -121,7 +121,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
         self=user_info
     )
 
-    # ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
+    #TODO ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
     time_step = datetime.timedelta(days=1)
     scheduler.add_pending(bot=bot, func=mailing, date=date_event-time_step)
 
@@ -130,7 +130,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
                         f'Ссылка на гугл-таблицу:\n'
                         f'{link}')
 
-# ЗАГЛУШКА. НАПИСАТЬ!!! ВЫНЕСТИ!!! Функция рассылки
+#TODO ЗАГЛУШКА. НАПИСАТЬ!!! ВЫНЕСТИ!!! Функция рассылки
 async def mailing(event_id: int, bot=bot):
     for user_id in partisipants.getPartisipants(event_id=event_id):
         bot.send_message(user_id=user_id)
