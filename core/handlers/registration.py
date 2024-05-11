@@ -56,6 +56,7 @@ async def register_handler(message, state: FSMContext):
 
 @reg_router.callback_query(F.data == 'confirm')
 async def confirm_reg(call: CallbackQuery, state: FSMContext):
+    await call.message.delete()
     data = await state.get_data()
     user_info = user.User.create(first_name=data['first_name'],
                                  last_name=data['second_name'],
