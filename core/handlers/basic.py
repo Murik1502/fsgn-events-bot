@@ -82,7 +82,7 @@ async def start_handler(message, state: FSMContext):
                 if len(all_events.inline_keyboard) == 0:
                     raise exceptions.EventNotFound
                 await message.answer_photo(
-                    photo=FSInputFile(os.path.join(os.getcwd(), "core\\static\\welcom_image.png")),
+                    photo=FSInputFile(os.path.join(os.getcwd(), "core/static/welcom_image.png")),
                     caption="Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
                     reply_markup=all_events)
             except exceptions.EventNotFound:
@@ -121,7 +121,7 @@ async def go_back(call: CallbackQuery):
                                           callback_data=f"more info {e.id}")])
         if len(all_events.inline_keyboard) == 0:
             raise exceptions.EventNotFound
-        photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core\\static\\welcom_image.png")),
+        photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core/static/welcom_image.png")),
                                 caption="Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже")
         await call.message.edit_media(media=photo,
                                       reply_markup=all_events)
