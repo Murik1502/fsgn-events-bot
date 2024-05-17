@@ -1,7 +1,8 @@
 import datetime
+import os.path
 
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from cache.participants import participants
+from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
 from bot import bot
 from aiogram.filters import Command
@@ -18,6 +19,7 @@ router = Router()
 # Хэндлер на команду /start
 @router.message(Command("start"))
 async def start_handler(message, state: FSMContext):
+    await state.clear()
     cmd = message.text.split()
     if len(cmd) == 2:
         try:
@@ -86,15 +88,14 @@ async def start_handler(message, state: FSMContext):
                                                   callback_data=f"more info {e.id}")])
                 if len(all_events.inline_keyboard) == 0:
                     raise exceptions.EventNotFound
-
-                await message.answer(
-                    "Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
+                await message.answer_photo(
+                    photo=FSInputFile(os.path.join(os.getcwd(), "core/static/welcom_image.png")),
+                    caption="Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
                     reply_markup=all_events)
             except exceptions.EventNotFound:
                 await message.answer("На данный момент нет активных мероприятий (")
         except exceptions.UserNotFound:
             await reg(message, state)
-    await message.delete()
 
 
 @router.callback_query(F.data.contains("more info"))
@@ -109,17 +110,15 @@ async def more_info(call: CallbackQuery):
         [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
     ], )
     try:
-        await call.message.delete()
-        await call.message.answer_photo(photo=data.photo_id,
-                                        caption=f"Название: {data.name}\nДата проведения: {data.date}\nОписание: {data.description}\nТип мероприятия: {type_event}",
-                                        reply_markup=join_event)
+        await call.message.edit_media(media=InputMediaPhoto(media=data.photo_id,
+                                                            caption=f"Название: {data.name}\nДата проведения: {data.date}\nОписание: {data.description}\nТип мероприятия: {type_event}"),
+                                      reply_markup=join_event)
     except:
         await call.message.answer("fffffff")
 
 
 @router.callback_query(F.data.contains("go back"))
 async def go_back(call: CallbackQuery):
-    await call.message.delete()
     try:
         all_events = InlineKeyboardMarkup(inline_keyboard=[])
         for e in event.Event.fetch_all():
@@ -129,9 +128,9 @@ async def go_back(call: CallbackQuery):
                                           callback_data=f"more info {e.id}")])
         if len(all_events.inline_keyboard) == 0:
             raise exceptions.EventNotFound
-
-        await call.message.answer(
-            "Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже",
-            reply_markup=all_events)
+        photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core/static/welcom_image.png")),
+                                caption="Добро пожаловать в бот для регистрации на мероприятия!\nВы можете выбрать и зарегистрироваться на мерпиятия из списка ниже")
+        await call.message.edit_media(media=photo,
+                                      reply_markup=all_events)
     except exceptions.EventNotFound:
         await call.message.answer("На данный момент нет активных мероприятий (")
