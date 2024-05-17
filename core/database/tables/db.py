@@ -1,10 +1,10 @@
-from typing import Any
+from typing import Any, Optional
 from defaults.settings import settings
 from peewee import PostgresqlDatabase, Model
 
 
 class ReconnectDatabase(PostgresqlDatabase):
-    def execute_sql(self, sql, params: Any | None = ..., commit=...):
+    def execute_sql(self, sql, params: Optional[Any] = ..., commit=...):
         try:
             cur = self.connection().cursor()
             cur.execute('SELECT 1')

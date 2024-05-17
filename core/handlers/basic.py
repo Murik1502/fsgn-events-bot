@@ -1,7 +1,7 @@
 import datetime
 
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from cache.participants import partisipants
+from cache.participants import participants
 
 from bot import bot
 from aiogram.filters import Command
@@ -43,7 +43,7 @@ async def start_handler(message, state: FSMContext):
                 try:
                     if team_code and event_info.type == eventtype.EventType.TEAM:
 
-                        partisipants.addPartisipant(user_id=user_info.id, event_id=event_id)
+                        participants.addParticipant(user_id=user_info.id, event_id=event_id)
 
                         join_info = user.User.join(user_info, event_id, team_code=team_code,
                                                    telegram_tag=message.from_user.username)
@@ -53,7 +53,7 @@ async def start_handler(message, state: FSMContext):
                             text=f"Вы присоединились к команде {team_info.leader.first_name} на мероприятие {event_info.name}!\n")
                     elif event_info.type == eventtype.EventType.TEAM:
 
-                        partisipants.addPartisipant(user_id=user_info.id, event_id=event_id)
+                        participants.addParticipant(user_id=user_info.id, event_id=event_id)
 
                         created_team_info = user.User.create_team(user_info, event_id, message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"

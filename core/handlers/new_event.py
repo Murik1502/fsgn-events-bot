@@ -5,7 +5,7 @@ from aiogram.types import CallbackQuery
 from bot import bot
 
 from cache.apsched import scheduler
-from cache.participants import partisipants
+from cache.participants import participants
 
 from google_sheet.sheet_editor import Sheet
 from ..database import user, eventtype, role
@@ -123,17 +123,19 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
     # ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
     time_step = datetime.timedelta(days=1)
-    scheduler.add_pending(bot=bot, func=mailing, date=date_event-time_step)
+    scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step)
 
     await msg.edit_text('Мероприятяие успешно создано. Ссылка-приглашение:\n'
                         f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
                         f'Ссылка на гугл-таблицу:\n'
                         f'{link}')
 
-# ЗАГЛУШКА. НАПИСАТЬ!!! ВЫНЕСТИ!!! Функция рассылки
+
+# Дописать, добавить текст сообщения и кнопки + их логику (придет/не придет)
 async def mailing(event_id: int, bot=bot):
-    for user_id in partisipants.getPartisipants(event_id=event_id):
+    for user_id in participants.getParticipants(event_id=event_id):
         bot.send_message(user_id=user_id)
+
 
 # Хэндлер на пересоздание мероприятия
 @admin_router.callback_query(F.data == 'create again')
