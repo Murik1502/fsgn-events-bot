@@ -39,24 +39,26 @@ async def register_handler(message, state: FSMContext):
 # Хэндлер на название для мероприятия
 @admin_router.message(StateFilter(CreateEvent.step_name))
 async def register_handler(message, state: FSMContext):
-    await state.update_data(name=message.text)
-    await state.set_state(CreateEvent.step2_description)
-    await message.answer(text='Отправте описание к мероприятию')
+    if not message.photo:
+        await state.update_data(name=message.text)
+        await state.set_state(CreateEvent.step2_description)
+        await message.answer(text='Отправте описание к мероприятию')
 
 
 # Хэндлер на описание для мероприятия
 @admin_router.message(StateFilter(CreateEvent.step2_description))
 async def register_handler(message, state: FSMContext):
-    await state.update_data(description=message.text)
-    await state.set_state(CreateEvent.step_type)
-    await message.answer('Выберите тип мероприятия', reply_markup=event_type)
+    if not message.photo:
+        await state.update_data(description=message.text)
+        await state.set_state(CreateEvent.step_type)
+        await message.answer('Выберите тип мероприятия', reply_markup=event_type)
 
 
 # Хэндлер на тип для мероприятия
 @admin_router.callback_query(F.data == 'individual')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(type=call.data)
-    await state.set_state(CreateEvent.step_date)
+    await state.set_state(CreateEvent.step_datetime)
     await call.message.edit_text("Вы выбрали одиночный тип мероприятия", reply_markup=None)
     await call.message.answer('Введите дату мероприятия(в формате 23.01.23):')
 
@@ -65,36 +67,36 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 @admin_router.callback_query(F.data == 'team')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(type=call.data)
-    await state.set_state(CreateEvent.step_date)
+    await state.set_state(CreateEvent.step_datetime)
     await call.message.edit_text("Вы выбрали командный тип мероприятия", reply_markup=None)
-    await call.message.answer('Введите дату мероприятия(в формате 23.01.23):')
+    await call.message.answer('Введите дату и время мероприятия(в формате 00.00.00 00:00):')
 
 
-# Хэндлер на дату для мероприятия
-@admin_router.message(StateFilter(CreateEvent.step_date))
-async def register_handler(message, state: FSMContext):
-    await state.update_data(date=message.text)
-    await message.answer('Введите время для мероприятия(в формате 12:30)')
-    await state.set_state(CreateEvent.step_time)
-
-
-# Хэндлер на время для мероприятия
-@admin_router.message(StateFilter(CreateEvent.step_time))
+# Хэндлер на дату и время для мероприятия
+@admin_router.message(StateFilter(CreateEvent.step_datetime))
 async def register_handler(message, state: FSMContext):
     data = await state.get_data()
-    final_time = data['date'] + " " + message.text
-    await state.update_data(date=final_time)
-    data = await state.get_data()
-    await message.answer_photo(data['image'],
-                               caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
-                               reply_markup=event_status)
+    if not message.photo:
+        try:
+            await state.update_data(date=datetime.datetime.strptime(message.text, "%d.%m.%y %H:%M"))
+        except ValueError:
+            await message.answer("Введите дату и время, предстоящего мероприятия в корректоном формате(например: "
+                                 "00.00.00 00:00)")
+        else:
+            if datetime.datetime.now() > datetime.datetime.strptime(message.text, "%d.%m.%y %H:%M"):
+                await message.answer("Сегоднящнее число больше введенной вами даты, пожалуйста введити актуальную дату и время")
+            else:
+                data = await state.get_data()
+                await message.answer_photo(data['image'],
+                                   caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+                                   reply_markup=event_status)
 
 
 # Хэндлер для сохранения мероприятия
 @admin_router.callback_query(F.data == 'add event')
 async def type_handler(call: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    date_event = datetime.datetime.strptime(data['date'], "%d.%m.%y %H:%M")
+    date_event = data['date']
     type_event = eventtype.EventType.DEFAULT
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
     await call.message.edit_caption(

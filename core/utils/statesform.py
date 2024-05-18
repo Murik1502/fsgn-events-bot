@@ -9,8 +9,7 @@ class CreateEvent(StatesGroup):
     step_image = State()
     step_name = State()
     step2_description = State()
-    step_date = State()
-    step_time = State()
+    step_datetime = State()
     step_type = State()
 
 
