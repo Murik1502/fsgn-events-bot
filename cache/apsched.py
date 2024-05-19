@@ -5,20 +5,34 @@ from aiogram import Bot
 import datetime
 from core.database import event, eventtype, exceptions
 from google_sheet.sheet_editor import Sheet
+from cache.participants import partisipants as partisipants_map, update_limit
+
 
 
 class Scheduler():
+
+    """
+    Класс для управления шедулером приложения
+
+    атрибут sched: асинхронный шедулер с временной зоной МСК
+
+    метод add_periodic: добавление функции, которая будет выполняться периодично с интервалом в секундах
+    метод add_pending: добавление функции, которая будет выполнена в определённый момент времени
+
+    При необходимости добавлять функции вручную аналогичным образом через
+        scheduler.sched.add_job( *ссылка на функцию* , trigger='interval', seconds=*колличество секунд* ) - периодичную
+        scheduler.sched.add_job( *ссылка на функцию*, trigger='date', next_run_time=*дата и время* ) - отложенную
+    """
     def __init__(self):
         self.sched = AsyncIOScheduler(timezone="Europe/Moscow")
-
-    async def add_periodic(self, bot: Bot, func: Callable, interval: int = 60):
+    async def add_periodic(self, bot: Bot, func: Callable, interval: int=60):
         self.sched.add_job(func, trigger='interval', seconds=interval, kwargs={'bot': bot})
 
     async def add_pending(self, bot: Bot, func: Callable, date):
         self.sched.add_job(func, trigger='date', next_run_time=date, kwargs={'bot': bot})
 
-
 scheduler = Scheduler()
+
 
 
 async def sheet(bot: Bot):
@@ -27,7 +41,7 @@ async def sheet(bot: Bot):
     except exceptions.EventNotFound:
         return
     for e in events:
-        if e.date.date() >= datetime.date.today():
+        if e.date.date() >= datetime.date.today() and partisipants_map.getCount(event_id=e.id) >= update_limit :
             try:
                 if e.type == eventtype.EventType.TEAM:
                     a = Sheet(e.name, True, link=e.google_sheet)
@@ -47,6 +61,8 @@ async def sheet(bot: Bot):
                                     f"{p.user.last_name} {p.user.first_name} {p.user.middle_name}",
                                     p.user.group, teams.index(p.team.code) + 1, visit])
                     a.updateSheet(arr)
+                    # Зачистка списка новозарегестрированных
+                    partisipants_map.clear(e.id)
                 else:
                     a = Sheet(e.name, False, link=e.google_sheet)
                     participants = e.participants()
@@ -62,6 +78,8 @@ async def sheet(bot: Bot):
                                     f"{p.user.last_name} {p.user.first_name} {p.user.middle_name}",
                                     p.user.group, visit])
                     a.updateSheet(arr)
+                    # Зачистка списка новозарегестрированных
+                    partisipants_map.clear(e.id)
             except Exception as e:
                 print(e)
                 pass
