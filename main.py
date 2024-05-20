@@ -27,7 +27,7 @@ async def start():
     dp = Dispatcher(storage=MemoryStorage())
 
     scheduler.sched.start()
-
+    await scheduler.add_periodic(bot, func=sheet, interval=60)
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
     dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, )
