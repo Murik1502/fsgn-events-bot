@@ -7,7 +7,7 @@ from core.handlers import basic, new_event, registration, admin
 from bot import bot
 from defaults.settings import settings
 from core.utils.commands import set_commands
-from cache.apsched import scheduler
+from cache.apsched import scheduler, sheet
 
 
 async def start_bot(bot: Bot):

@@ -5,7 +5,7 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import FSInputFile, CallbackQuery
 from aiogram import F
 from bot import bot
-from cache.participants import partisipants
+from cache.participants import participants
 
 import core.handlers.basic
 from ..utils.statesform import *
@@ -76,7 +76,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         join_info = user.User.join(user_info, event_id, team_code=team_code, telegram_tag=call.from_user.username)
 
         # добавление в мапу
-        partisipants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await bot.send_message(chat_id=team_info.leader.telegram_id,
                                text=f"@{call.from_user.username} присоединился к Вашей команде на мероприятие {event_info.name}!")
@@ -86,7 +86,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         created_team_info = user.User.create_team(user_info, event_id, telegram_tag=call.from_user.username)[0]
 
         # добавление в мапу
-        partisipants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
                                        f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}")
@@ -94,7 +94,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         user.User.join(user_info, event_id, telegram_tag=call.from_user.username)
 
         # добавление в мапу
-        partisipants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
 

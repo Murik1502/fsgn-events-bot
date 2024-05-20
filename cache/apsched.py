@@ -5,7 +5,7 @@ from aiogram import Bot
 import datetime
 from core.database import event, eventtype, exceptions
 from google_sheet.sheet_editor import Sheet
-from cache.participants import partisipants as partisipants_map, update_limit
+from cache.participants import participants as participants_map, update_limit
 
 
 
@@ -41,7 +41,7 @@ async def sheet(bot: Bot):
     except exceptions.EventNotFound:
         return
     for e in events:
-        if e.date.date() >= datetime.date.today() and partisipants_map.getCount(event_id=e.id) >= update_limit :
+        if e.date.date() >= datetime.date.today() and participants_map.getCount(event_id=e.id) >= update_limit :
             try:
                 if e.type == eventtype.EventType.TEAM:
                     a = Sheet(e.name, True, link=e.google_sheet)
@@ -62,7 +62,7 @@ async def sheet(bot: Bot):
                                     p.user.group, teams.index(p.team.code) + 1, visit])
                     a.updateSheet(arr)
                     # Зачистка списка новозарегестрированных
-                    partisipants_map.clear(e.id)
+                    participants_map.clear(e.id)
                 else:
                     a = Sheet(e.name, False, link=e.google_sheet)
                     participants = e.participants()
@@ -79,7 +79,7 @@ async def sheet(bot: Bot):
                                     p.user.group, visit])
                     a.updateSheet(arr)
                     # Зачистка списка новозарегестрированных
-                    partisipants_map.clear(e.id)
+                    participants_map.clear(e.id)
             except Exception as e:
                 print(e)
                 pass
