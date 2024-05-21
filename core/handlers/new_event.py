@@ -8,9 +8,9 @@ from cache.apsched import scheduler
 from cache.participants import participants
 
 from google_sheet.sheet_editor import Sheet
-from ..database import user, eventtype, role
+from ..database import user, eventtype, role, event
 from ..utils.statesform import *
-from ..keyboards.inline import event_type, event_status
+from ..keyboards.inline import event_type, event_status, visit_status
 import datetime
 
 admin_router = Router()
@@ -125,7 +125,8 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
     # ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
     time_step = datetime.timedelta(days=1)
-    scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step)
+    participants.addEvent(event_id=event_info.id)
+    await scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step, kwargs={'event_id':event_info.id})
 
     await msg.edit_text('Мероприятяие успешно создано. Ссылка-приглашение:\n'
                         f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
@@ -136,7 +137,10 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 # Дописать, добавить текст сообщения и кнопки + их логику (придет/не придет)
 async def mailing(event_id: int, bot=bot):
     for user_id in participants.getParticipants(event_id=event_id):
-        bot.send_message(user_id=user_id)
+        print(event_id,user_id)
+        await bot.send_message(chat_id=user_id,
+                         reply_markup=visit_status,
+                         text=f"Придешь ли на мероприятияе{event.Event.fetch(event_id).name}")
 
 
 # Хэндлер на пересоздание мероприятия

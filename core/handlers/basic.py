@@ -9,6 +9,7 @@ from aiogram.filters import Command
 from aiogram import Router
 from aiogram.fsm.context import FSMContext
 
+from .new_event import mailing
 from ..utils.statesform import *
 from ..handlers.registration import *
 from core.database import *
@@ -19,6 +20,10 @@ router = Router()
 # Хэндлер на команду /start
 @router.message(Command("start"))
 async def start_handler(message, state: FSMContext):
+    for event_id in participants.getEvents():
+        for user_id in participants.getParticipants(event_id=event_id):
+            print(event_id, user_id)
+        await mailing(event_id, bot)
     await state.clear()
     cmd = message.text.split()
     if len(cmd) == 2:
@@ -29,7 +34,6 @@ async def start_handler(message, state: FSMContext):
                 cmd_dict[parts[i]] = parts[i + 1]
             event_id = cmd_dict.get('event')
             team_code = cmd_dict.get('team')
-            print(event_id, team_code)
 
             event_info = event.Event.fetch(event_id)
             if event_info.date.date() < datetime.date.today():
@@ -45,7 +49,7 @@ async def start_handler(message, state: FSMContext):
                 try:
                     if team_code and event_info.type == eventtype.EventType.TEAM:
 
-                        participants.addParticipant(user_id=user_info.id, event_id=event_id)
+                        participants.addParticipant(user_id=message.from_user.id, event_id=event_id)
 
                         join_info = user.User.join(user_info, event_id, team_code=team_code,
                                                    telegram_tag=message.from_user.username)
@@ -55,7 +59,7 @@ async def start_handler(message, state: FSMContext):
                             text=f"Вы присоединились к команде {team_info.leader.first_name} на мероприятие {event_info.name}!\n")
                     elif event_info.type == eventtype.EventType.TEAM:
 
-                        participants.addParticipant(user_id=user_info.id, event_id=event_id)
+                        participants.addParticipant(user_id=message.from_user.id, event_id=event_id)
 
                         created_team_info = user.User.create_team(user_info, event_id, message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
@@ -63,6 +67,7 @@ async def start_handler(message, state: FSMContext):
                     else:
                         user.User.join(user_info, event_id, telegram_tag=message.from_user.username)
                         await message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
+                        participants.addParticipant(user_id=message.from_user.id, event_id=event_id)
 
                 except exceptions.UserAlreadyJoined:
                     await message.answer(text=f"Вы уже присоединились к мероприятию {event_info.name}")
@@ -106,7 +111,7 @@ async def more_info(call: CallbackQuery):
     if data.type == eventtype.EventType.DEFAULT:
         type_event = "Одиночное"
     join_event = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
+        [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
         [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
     ], )
     try:
