@@ -4,11 +4,13 @@ from typing import Callable
 from aiogram import Bot
 import datetime
 from core.database import event, eventtype, exceptions
+from core.keyboards.inline import visit_status
+from defaults.settings import settings
 from google_sheet.sheet_editor import Sheet
 from cache.participants import participants as participants_map, update_limit
 
 
-class Scheduler():
+class Scheduler:
     """
     Класс для управления шедулером приложения
 
@@ -28,12 +30,28 @@ class Scheduler():
     async def add_periodic(self, bot: Bot, func: Callable, interval: int = 60):
         self.sched.add_job(func, trigger='interval', seconds=interval, kwargs={'bot': bot})
 
-    async def add_pending(self, bot: Bot, func: Callable, date, kwargs):
+    async def add_pending(self, bot: Bot, func: Callable, date, **kwargs):
+        print(kwargs, kwargs['event_id'])
         self.sched.add_job(func, trigger='date', next_run_time=date,
-                           kwargs={'bot' : bot, 'event_id': kwargs['event_id']})
+                           kwargs={'bot': bot, 'event_id': kwargs['event_id']})
 
 
 scheduler = Scheduler()
+
+
+async def mailing(bot: Bot, event_id) -> None:
+    e = event.Event.fetch(event_id)
+    p = e.participants()
+    for model in p:
+        user_id = model.user.telegram_id
+        print(f"sending mail to {user_id}")
+        try:
+            await bot.send_message(chat_id=user_id,
+                                   reply_markup=visit_status,
+                                   text=f"""Подтвердите свое участие в мероприятии "{e.name}" """)
+            print("mail sent successfully!")
+        except Exception as e:
+            print("something went wrong:", e)
 
 
 async def sheet(bot: Bot):
@@ -46,10 +64,10 @@ async def sheet(bot: Bot):
             try:
                 if e.type == eventtype.EventType.TEAM:
                     a = Sheet(e.name, True, link=e.google_sheet)
-                    participants = e.participants()
+                    allParticipants = e.participants()
                     arr = []
                     teams = []
-                    for p in participants:
+                    for p in allParticipants:
                         if p.team.code not in teams:
                             teams.append(p.team.code)
                         if p.visit.value == 0:
@@ -66,9 +84,9 @@ async def sheet(bot: Bot):
                     participants_map.clear(e.id)
                 else:
                     a = Sheet(e.name, False, link=e.google_sheet)
-                    participants = e.participants()
+                    allParticipants = e.participants()
                     arr = []
-                    for p in participants:
+                    for p in allParticipants:
                         if p.visit.value == 0:
                             visit = ''
                         elif p.visit.value == -1:
@@ -84,4 +102,3 @@ async def sheet(bot: Bot):
             except Exception as e:
                 print(e)
                 pass
-    pass

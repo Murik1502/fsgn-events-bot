@@ -5,12 +5,13 @@ from aiogram.types import CallbackQuery
 from bot import bot
 
 from cache.apsched import scheduler
+from cache.apsched import mailing
 from cache.participants import participants
 
 from google_sheet.sheet_editor import Sheet
 from ..database import user, eventtype, role, event
 from ..utils.statesform import *
-from ..keyboards.inline import event_type, event_status, visit_status
+from ..keyboards.inline import event_type, event_status
 import datetime
 
 admin_router = Router()
@@ -84,12 +85,13 @@ async def register_handler(message, state: FSMContext):
                                  "00.00.00 00:00)")
         else:
             if datetime.datetime.now() > datetime.datetime.strptime(message.text, "%d.%m.%y %H:%M"):
-                await message.answer("Сегоднящнее число больше введенной вами даты, пожалуйста введити актуальную дату и время")
+                await message.answer(
+                    "Дата должна быть позднее сегодняшнего дня!")
             else:
                 data = await state.get_data()
                 await message.answer_photo(data['image'],
-                                   caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
-                                   reply_markup=event_status)
+                                           caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+                                           reply_markup=event_status)
 
 
 # Хэндлер для сохранения мероприятия
@@ -126,7 +128,8 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     # ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
     time_step = datetime.timedelta(days=1)
     participants.addEvent(event_id=event_info.id)
-    await scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step, kwargs={'event_id':event_info.id})
+    await scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step,
+                                event_id=event_info.id)
 
     await msg.edit_text('Мероприятяие успешно создано. Ссылка-приглашение:\n'
                         f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
@@ -135,13 +138,6 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
 
 # Дописать, добавить текст сообщения и кнопки + их логику (придет/не придет)
-async def mailing(event_id: int, bot=bot):
-    for user_id in participants.getParticipants(event_id=event_id):
-        print(event_id,user_id)
-        await bot.send_message(chat_id=user_id,
-                         reply_markup=visit_status,
-                         text=f"Придешь ли на мероприятияе{event.Event.fetch(event_id).name}")
-
 
 # Хэндлер на пересоздание мероприятия
 @admin_router.callback_query(F.data == 'create again')

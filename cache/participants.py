@@ -1,9 +1,10 @@
 from typing import Dict, List
 
 # Минимальное количество новых участников для обновления
-update_limit = 5
-class MapParticipants:
+update_limit = 1
 
+
+class MapParticipants:
     """
     Класс для храненя зарегестрированных с момента последнего обновления участников
 
@@ -27,6 +28,7 @@ class MapParticipants:
 
         В случае удаления мероприятия или остановки регистрации на очистить аналогично
     """
+
     def __init__(self):
         self.dict = Dict[int, List[int]]
         self.dict = {}
@@ -34,31 +36,35 @@ class MapParticipants:
     def getEvents(self) -> List[int]:
         return list(self.dict.keys())
 
-    def getParticipants(self, event_id: int=None) -> List[int]:
+    def getParticipants(self, event_id: int = None) -> List[int]:
         if event_id is None:
             return list(self.dict.values())
-        elif event_id in self.dict.keys():
-            return self.dict[event_id]
+        elif str(event_id) in self.dict.keys():
+            return self.dict[str(event_id)]
+        else:
+            print("ERROR: event_id", event_id, "not in", list(self.dict.keys()))
+            return []
 
     def addParticipant(self, user_id: int, event_id: int) -> None:
         self.addEvent(event_id=event_id)
-        if not user_id in self.dict[event_id]:
+        if user_id not in self.dict[event_id]:
             self.dict[event_id].append(user_id)
 
     def addEvent(self, event_id: int) -> None:
         if event_id not in self.dict.keys():
             self.dict[event_id] = []
 
-    def getCount(self, event_id: int=None) -> int:
+    def getCount(self, event_id: int = None) -> int:
         p = self.getParticipants(event_id=event_id)
         if p is not None:
-            return  len(p)
+            return len(p)
         return 0
 
-    def clear(self, event_id: int=None) -> None:
+    def clear(self, event_id: int = None) -> None:
         if event_id is None:
             self.dict.clear()
-        elif event_id in self.dict.keys():
-            self.dict.pop(event_id)
+        elif str(event_id) in self.dict.keys():
+            self.dict.pop(str(event_id))
+
 
 participants = MapParticipants()

@@ -20,10 +20,6 @@ router = Router()
 # Хэндлер на команду /start
 @router.message(Command("start"))
 async def start_handler(message, state: FSMContext):
-    for event_id in participants.getEvents():
-        for user_id in participants.getParticipants(event_id=event_id):
-            print(event_id, user_id)
-        await mailing(event_id, bot)
     await state.clear()
     cmd = message.text.split()
     if len(cmd) == 2:
@@ -126,7 +122,8 @@ async def more_info(call: CallbackQuery):
 async def go_back(call: CallbackQuery):
     try:
         all_events = InlineKeyboardMarkup(inline_keyboard=[])
-        for e in event.Event.fetch_all():
+        events = event.Event.fetch_all()
+        for e in events:
             if e.date.date() >= datetime.date.today():
                 all_events.inline_keyboard.append(
                     [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
