@@ -8,9 +8,7 @@ from google_sheet.sheet_editor import Sheet
 from cache.participants import participants as participants_map, update_limit
 
 
-
 class Scheduler():
-
     """
     Класс для управления шедулером приложения
 
@@ -23,16 +21,19 @@ class Scheduler():
         scheduler.sched.add_job( *ссылка на функцию* , trigger='interval', seconds=*колличество секунд* ) - периодичную
         scheduler.sched.add_job( *ссылка на функцию*, trigger='date', next_run_time=*дата и время* ) - отложенную
     """
+
     def __init__(self):
         self.sched = AsyncIOScheduler(timezone="Europe/Moscow")
-    async def add_periodic(self, bot: Bot, func: Callable, interval: int=60):
+
+    async def add_periodic(self, bot: Bot, func: Callable, interval: int = 60):
         self.sched.add_job(func, trigger='interval', seconds=interval, kwargs={'bot': bot})
 
-    async def add_pending(self, bot: Bot, func: Callable, date):
-        self.sched.add_job(func, trigger='date', next_run_time=date, kwargs={'bot': bot})
+    async def add_pending(self, bot: Bot, func: Callable, date, kwargs):
+        self.sched.add_job(func, trigger='date', next_run_time=date,
+                           kwargs={'bot' : bot, 'event_id': kwargs['event_id']})
+
 
 scheduler = Scheduler()
-
 
 
 async def sheet(bot: Bot):
@@ -41,7 +42,7 @@ async def sheet(bot: Bot):
     except exceptions.EventNotFound:
         return
     for e in events:
-        if e.date.date() >= datetime.date.today() and participants_map.getCount(event_id=e.id) >= update_limit :
+        if e.date.date() >= datetime.date.today() and int(participants_map.getCount(event_id=e.id)) >= update_limit:
             try:
                 if e.type == eventtype.EventType.TEAM:
                     a = Sheet(e.name, True, link=e.google_sheet)

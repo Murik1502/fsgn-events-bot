@@ -50,7 +50,10 @@ class MapParticipants:
             self.dict[event_id] = []
 
     def getCount(self, event_id: int=None) -> int:
-        return len(self.getParticipants(event_id=event_id))
+        p = self.getParticipants(event_id=event_id)
+        if p is not None:
+            return  len(p)
+        return 0
 
     def clear(self, event_id: int=None) -> None:
         if event_id is None:
