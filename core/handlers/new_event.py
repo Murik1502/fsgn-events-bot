@@ -145,8 +145,13 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
 @admin_router.callback_query(F.data.startswith('yes_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
-    await call.message.edit_text(text='Вы подтвердили свое участие')
+
     event_id = call.data[9:]
+    e = event.Event.fetch(event_id)
+    if e.date >= datetime.datetime.now():
+        await call.message.edit_text(text='Мероприятие уже началось!')
+        return
+    await call.message.edit_text(text='Вы подтвердили свое участие')
     for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
         if partic.event.id == int(event_id):
             participants.addParticipant(call.from_user.id, event_id)
@@ -156,8 +161,12 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
 @admin_router.callback_query(F.data.startswith('no_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
+    event_id = call.data[9:]
+    e = event.Event.fetch(event_id)
+    if e.date >= datetime.datetime.now():
+        await call.message.edit_text(text='Мероприятие уже началось!')
+        return
     await call.message.edit_text(text='Вы отказались принять участие')
-    event_id = call.data[8:]
     for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
         if partic.event.id == int(event_id):
             participants.addParticipant(call.from_user.id, event_id)
