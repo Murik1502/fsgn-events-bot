@@ -1,7 +1,7 @@
 from aiogram.filters import Command, StateFilter
 from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery
+from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from bot import bot
 
 from cache.apsched import scheduler
@@ -9,7 +9,8 @@ from cache.apsched import mailing
 from cache.participants import participants
 
 from google_sheet.sheet_editor import Sheet
-from ..database import user, eventtype, role, event
+from ..database import user, eventtype, role, event, participant
+from ..database.visit import Visit
 from ..utils.statesform import *
 from ..keyboards.inline import event_type, event_status
 import datetime
@@ -136,8 +137,24 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
                         f'Ссылка на гугл-таблицу:\n'
                         f'{link}')
 
+@admin_router.callback_query(F.data.startswith('yes_visit'))
+async def type_handler(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text(text='Вы подтвердили свое участие')
+    event_id = call.data[9:]
+    for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
+        if partic.event.id == int(event_id):
+            partic.visit = Visit.YES
 
-# Дописать, добавить текст сообщения и кнопки + их логику (придет/не придет)
+@admin_router.callback_query(F.data.startswith('no_visit'))
+async def type_handler(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_text(text='Вы опровергли свое участие')
+    event_id = call.data[8:]
+    for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
+        if partic.event.id == int(event_id):
+            print(partic.id)
+            partic.visit = Visit.NO
+            print(partic.visit)
+
 
 # Хэндлер на пересоздание мероприятия
 @admin_router.callback_query(F.data == 'create again')

@@ -19,8 +19,3 @@ reg_status = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Всё верно", callback_data="confirm"),
      InlineKeyboardButton(text="Изменить", callback_data="change")]
 ], )
-
-visit_status = InlineKeyboardMarkup(inline_keyboard=[
-    [InlineKeyboardButton(text="Да", callback_data="yes_visit"),
-     InlineKeyboardButton(text="Нет", callback_data="no_visit")]
-], )
