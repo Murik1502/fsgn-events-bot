@@ -144,6 +144,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
         if partic.event.id == int(event_id):
             partic.visit = Visit.YES
+            return
 
 @admin_router.callback_query(F.data.startswith('no_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):

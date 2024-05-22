@@ -39,8 +39,8 @@ async def register_handler(message, state: FSMContext):
             user_info.role = role.Role.ADMIN
             await message.answer("Вы успешно выдали доступ пользователю!")
             await bot.bot.send_message(chat_id=user_info.telegram_id,
-                                 text=f"@{message.from_user.username} выдал Вам права Администратора! Теперь с помощью кнопки /new_event вы можете создавать мероприятия",
-                                reply_markup=admin_keyword)
+                                       text=f"@{message.from_user.username} выдал Вам права Администратора! Теперь с помощью кнопки /new_event вы можете создавать мероприятия",
+                                       reply_markup=admin_keyword)
     except exceptions.UserNotFound:
         await message.answer("Такого пользователя не существует! Проверьте данные.")
     await state.clear()

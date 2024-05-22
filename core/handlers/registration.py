@@ -6,8 +6,6 @@ from aiogram.types import FSInputFile, CallbackQuery
 from aiogram import F
 from bot import bot
 from cache.participants import participants
-
-import core.handlers.basic
 from ..utils.statesform import *
 from ..keyboards.inline import reg_status
 from core.database import *
@@ -18,7 +16,7 @@ reg_router = Router()
 @reg_router.message(StateFilter(Registration.step_start_reg))
 async def reg(message, state: FSMContext):
     await state.set_state(Registration.first_name)
-    await message.answer(text='Введите имя:')
+    await message.answer(text='Введите Ваше Имя:')
 
 
 # Хэндлер на имя пользователя
@@ -26,7 +24,7 @@ async def reg(message, state: FSMContext):
 async def register_handler(message, state: FSMContext):
     await state.set_state(Registration.second_name)
     await state.update_data(first_name=message.text.capitalize())
-    await message.answer(text='Введите фамилию:')
+    await message.answer(text='Введите Вашу Фамилию:')
 
 
 # Хэндлер на фамилию пользователя
@@ -34,7 +32,7 @@ async def register_handler(message, state: FSMContext):
 async def register_handler(message, state: FSMContext):
     await state.update_data(second_name=message.text.capitalize())
     await state.set_state(Registration.middle_name)
-    await message.answer("Введите отчество:")
+    await message.answer("Введите Ваше Отчество:")
 
 
 # Хэндлер на отчество пользователя
@@ -42,7 +40,8 @@ async def register_handler(message, state: FSMContext):
 async def register_handler(message, state: FSMContext):
     await state.update_data(middle_name=message.text.capitalize())
     await state.set_state(Registration.group)
-    await message.answer('Введите учебнуюю групп в формате(СГН3-21Б):')
+    await message.answer(
+        'Введите Вашу учебную группу в формате (СГН3-21Б)\n\nЕсли Вы не являетесь студентом МГТУ - введите "-"')
 
 
 # Хэндлер на группу пользователя
@@ -51,7 +50,8 @@ async def register_handler(message, state: FSMContext):
     await state.update_data(group=message.text)
     data = await state.get_data()
     await message.answer(
-        text=f"Имя: {data['first_name']}\nФамилия: {data['second_name']}\nОтчество: {data['middle_name']}\nГруппа: {data['group']}",
+        text=f"Проверьте введенные данные:\n\n"
+             f"🔹Имя: {data['first_name']}\n🔹Фамилия: {data['second_name']}\n🔹Отчество: {data['middle_name']}\n🔹Группа: {data['group']}",
         reply_markup=reg_status)
 
 
@@ -71,12 +71,11 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
     team_info = data.get('team_info')
     if event_id is None:
         await call.message.answer("Вы успешно зарегестрировались!")
-        return
-    if team_code and event_info.type == eventtype.EventType.TEAM:
+    elif team_code and event_info.type == eventtype.EventType.TEAM:
         join_info = user.User.join(user_info, event_id, team_code=team_code, telegram_tag=call.from_user.username)
 
         # добавление в мапу
-        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addParticipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await bot.send_message(chat_id=team_info.leader.telegram_id,
                                text=f"@{call.from_user.username} присоединился к Вашей команде на мероприятие {event_info.name}!")
@@ -86,10 +85,11 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         created_team_info = user.User.create_team(user_info, event_id, telegram_tag=call.from_user.username)[0]
 
         # добавление в мапу
-        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addParticipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
-                                       f"Ссылка на приглашение участников команды: https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}")
+                                       f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}`",
+                                  parse_mode="markdown")
     else:
         user.User.join(user_info, event_id, telegram_tag=call.from_user.username)
 
@@ -97,8 +97,11 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
-
-    await state.clear()
+    stateData = await state.get_data()
+    print(stateData)
+    message = stateData['message']
+    func = stateData['start_func']
+    await func(message, state)
 
 
 @reg_router.callback_query(F.data == 'change')
