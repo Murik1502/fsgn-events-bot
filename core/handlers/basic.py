@@ -107,7 +107,7 @@ async def more_info(call: CallbackQuery):
     if data.type == eventtype.EventType.DEFAULT:
         type_event = "Одиночное"
     join_event = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
+        [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
         [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
     ], )
     try:
