@@ -69,7 +69,7 @@ async def start_handler(message, state: FSMContext):
                     await message.answer(text=f""" Вы уже присоединились к мероприятию "{event_info.name}"  """)
 
             except exceptions.UserNotFound:
-                await state.update_data(event_id=event_id, team_code=team_code, event_info=event_info, message=message, start_func=start_handler)
+                await state.update_data(event_id=event_id, team_code=team_code, event_info=event_info, start_func=start_handler)
                 await reg(message=message, state=state)
 
         except (IndexError, exceptions.EventNotFound, exceptions.TeamNotFound, exceptions.TeamAnotherEvent):
@@ -113,7 +113,8 @@ async def more_info(call: CallbackQuery):
                                                             caption=f"{data.description}"),
                                       reply_markup=join_event)
     except:
-        await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
+        pass
+        #await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
 
 
 @router.callback_query(F.data.contains("go back"))

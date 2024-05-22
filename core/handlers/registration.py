@@ -48,6 +48,7 @@ async def register_handler(message, state: FSMContext):
 @reg_router.message(StateFilter(Registration.group))
 async def register_handler(message, state: FSMContext):
     await state.update_data(group=message.text)
+    await state.update_data(message=message)
     data = await state.get_data()
     await message.answer(
         text=f"Проверьте введенные данные:\n\n"
@@ -94,7 +95,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
         user.User.join(user_info, event_id, telegram_tag=call.from_user.username)
 
         # добавление в мапу
-        participants.addPartisipant(event_id=event_id, user_id=user_info.telegram_id)
+        participants.addParticipant(event_id=event_id, user_id=user_info.telegram_id)
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n")
     stateData = await state.get_data()
