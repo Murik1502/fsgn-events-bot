@@ -26,7 +26,7 @@ async def new_event(message, state: FSMContext):
         return
     await state.set_state(CreateEvent.step_image)
     await state.update_data(id=1)
-    await message.answer(text='Отправте картинку для мероприятия')
+    await message.answer(text='Отправьте афишу для мероприятия')
 
 
 # Хэндлер на картинку для мероприятия
@@ -35,7 +35,7 @@ async def register_handler(message, state: FSMContext):
     await state.update_data(image=message.photo[-1].file_id)
     print(message.photo[-1].file_id)
     await state.set_state(CreateEvent.step_name)
-    await message.answer(text='Отправте название мероприятия')
+    await message.answer(text='Отправьте название мероприятия')
 
 
 # Хэндлер на название для мероприятия
@@ -44,7 +44,7 @@ async def register_handler(message, state: FSMContext):
     if not message.photo:
         await state.update_data(name=message.text)
         await state.set_state(CreateEvent.step2_description)
-        await message.answer(text='Отправте описание к мероприятию')
+        await message.answer(text='Отправьте описание к мероприятию')
 
 
 # Хэндлер на описание для мероприятия
@@ -61,8 +61,9 @@ async def register_handler(message, state: FSMContext):
 async def type_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(type=call.data)
     await state.set_state(CreateEvent.step_datetime)
-    await call.message.edit_text("Вы выбрали одиночный тип мероприятия", reply_markup=None)
-    await call.message.answer('Введите дату мероприятия(в формате 23.01.23):')
+    await call.message.edit_text("Вы выбрали мероприятие с одиночным участием", reply_markup=None)
+    await call.message.answer(
+        f'Введите дату и время мероприятия в формате (15.06.24 12:30)')
 
 
 # Хэндлер на тип для мероприятия
@@ -71,7 +72,8 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     await state.update_data(type=call.data)
     await state.set_state(CreateEvent.step_datetime)
     await call.message.edit_text("Вы выбрали командный тип мероприятия", reply_markup=None)
-    await call.message.answer('Введите дату и время мероприятия(в формате 00.00.00 00:00):')
+    await call.message.answer(
+        f'Введите дату и время мероприятия в формате (15.06.24 12:30)')
 
 
 # Хэндлер на дату и время для мероприятия
@@ -82,16 +84,18 @@ async def register_handler(message, state: FSMContext):
         try:
             await state.update_data(date=datetime.datetime.strptime(message.text, "%d.%m.%y %H:%M"))
         except ValueError:
-            await message.answer("Введите дату и время, предстоящего мероприятия в корректоном формате(например: "
-                                 "00.00.00 00:00)")
+            await message.answer(
+                f'Введите дату и время в корректном формате (15.06.24 12:30)')
         else:
             if datetime.datetime.now() > datetime.datetime.strptime(message.text, "%d.%m.%y %H:%M"):
                 await message.answer(
-                    "Дата должна быть позднее сегодняшнего дня!")
+                    "Дата должна быть позже сегодняшнего дня!")
             else:
                 data = await state.get_data()
+                type = "командное"
+                if data['type'] != 'team': type = 'одиночное'
                 await message.answer_photo(data['image'],
-                                           caption=f"Название: {data['name']}\nДата проведения: {data['date']}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+                                           caption=f"Проверьте введеные данные:\n\n🔹Название:\n{data['name']}\n\n🔹Дата проведения:\n{data['date']}\n\n🔹Описание:\n{data['description']}\n\n🔹Тип мероприятия: {type}",
                                            reply_markup=event_status)
 
 
@@ -102,8 +106,10 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     date_event = data['date']
     type_event = eventtype.EventType.DEFAULT
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
+    type = "командное"
+    if data['type'] != 'team': type = 'одиночное'
     await call.message.edit_caption(
-        caption=f"Название: {data['name']}\nДата проведения: {date_event}\nОписание: {data['description']}\nТип мероприятия: {data['type']}",
+        caption=f"🔹Название:\n{data['name']}\n\n🔹Дата проведения:\n{data['date']}\n\n🔹Описание:\n{data['description']}\n\n🔹Тип мероприятия: {type}",
         reply_markup=None)
     msg = await call.message.answer('Пожалуйста, подождите...')
     if data['type'] == 'team':
@@ -126,16 +132,16 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
         self=user_info
     )
 
-    # ЗАГЛУШКА. ПОМЕНЯТЬ!!! В качестве переменной передавать время, за сколько до начала меро надо сделать рассылку
     time_step = datetime.timedelta(days=1)
     participants.addEvent(event_id=event_info.id)
     await scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step,
                                 event_id=event_info.id)
 
-    await msg.edit_text('Мероприятяие успешно создано. Ссылка-приглашение:\n'
-                        f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
+    await msg.edit_text('Мероприятяие успешно создано.\nСсылка-приглашение:\n'
+                        f'`https://t.me/fsgn_events_bot?start=event-{event_info.id}`\n'
                         f'Ссылка на гугл-таблицу:\n'
-                        f'{link}')
+                        f'{link}', parse_mode="MARKDOWN")
+
 
 @admin_router.callback_query(F.data.startswith('yes_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
@@ -143,18 +149,20 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     event_id = call.data[9:]
     for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
         if partic.event.id == int(event_id):
+            participants.addParticipant(call.from_user.id, event_id)
             partic.visit = Visit.YES
             return
 
+
 @admin_router.callback_query(F.data.startswith('no_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
-    await call.message.edit_text(text='Вы опровергли свое участие')
+    await call.message.edit_text(text='Вы отказались принять участие')
     event_id = call.data[8:]
     for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
         if partic.event.id == int(event_id):
-            print(partic.id)
+            participants.addParticipant(call.from_user.id, event_id)
             partic.visit = Visit.NO
-            print(partic.visit)
+            return
 
 
 # Хэндлер на пересоздание мероприятия
@@ -162,4 +170,4 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 async def type_handler(call: CallbackQuery, state: FSMContext):
     await call.message.edit_caption(caption='Пожалуйста введите данные для этого мероприятия заново', reply_markup=None)
     await state.set_state(CreateEvent.step_image)
-    await call.message.answer('Отправте картинку для мероприятия')
+    await call.message.answer('Отправьте афишу для мероприятия')

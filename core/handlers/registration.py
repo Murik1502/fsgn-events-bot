@@ -16,6 +16,7 @@ reg_router = Router()
 @reg_router.message(StateFilter(Registration.step_start_reg))
 async def reg(message, state: FSMContext):
     await state.set_state(Registration.first_name)
+    await message.answer(text='Для использования бота необходимо зарегистрироваться')
     await message.answer(text='Введите Ваше Имя:')
 
 
@@ -90,7 +91,7 @@ async def confirm_reg(call: CallbackQuery, state: FSMContext):
 
         await call.message.answer(text=f"Вы присоединились к мероприятию {event_info.name}!\n"
                                        f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info.code}`",
-                                  parse_mode="markdown")
+                                  parse_mode="MARKDOWN")
     else:
         user.User.join(user_info, event_id, telegram_tag=call.from_user.username)
 
