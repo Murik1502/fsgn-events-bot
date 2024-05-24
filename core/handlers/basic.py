@@ -59,7 +59,8 @@ async def start_handler(message, state: FSMContext):
 
                         created_team_info = user.User.create_team(user_info, event_id, message.from_user.username)
                         await message.answer(text=f"""Вы присоединились к мероприятию "{event_info.name}"!\n"""
-                                                  f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info[0].code}`", parse_mode='MARKDOWN')
+                                                  f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info[0].code}`",
+                                             parse_mode='MARKDOWN')
                     else:
                         user.User.join(user_info, event_id, telegram_tag=message.from_user.username)
                         await message.answer(text=f""" Вы присоединились к мероприятию "{event_info.name}"!\n""")
@@ -69,7 +70,8 @@ async def start_handler(message, state: FSMContext):
                     await message.answer(text=f""" Вы уже присоединились к мероприятию "{event_info.name}"  """)
 
             except exceptions.UserNotFound:
-                await state.update_data(event_id=event_id, team_code=team_code, event_info=event_info, start_func=start_handler)
+                await state.update_data(event_id=event_id, team_code=team_code, event_info=event_info,
+                                        start_func=start_handler)
                 await reg(message=message, state=state)
 
         except (IndexError, exceptions.EventNotFound, exceptions.TeamNotFound, exceptions.TeamAnotherEvent):
@@ -108,13 +110,19 @@ async def more_info(call: CallbackQuery):
         [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
         [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
     ], )
+    if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)):
+        join_event = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
+            [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ],
+            [InlineKeyboardButton(text="Удалить", callback_data='delete' + event_id), ]
+        ], )
     try:
         await call.message.edit_media(media=InputMediaPhoto(media=data.photo_id,
                                                             caption=f"{data.description}"),
                                       reply_markup=join_event)
     except:
         pass
-        #await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
+        # await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
 
 
 @router.callback_query(F.data.contains("go back"))
@@ -136,3 +144,28 @@ async def go_back(call: CallbackQuery):
                                       reply_markup=all_events)
     except exceptions.EventNotFound:
         await call.message.answer("На данный момент нет активных мероприятий (")
+
+
+@router.callback_query(F.data.contains("delete"))
+async def delete_event(call: CallbackQuery):
+    approve_delete = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Да, удалить", callback_data=f'yes{call.data[6:]}'), ],
+        [InlineKeyboardButton(text="Отмена", callback_data=f'more info {call.data[6:]}'), ]
+    ], )
+    await call.message.edit_caption(caption=
+                                    f"{call.message.caption}\n\n Вы точно хотите удалить данное мероприятие?")
+    await call.message.edit_reply_markup(reply_markup=approve_delete)
+
+
+@router.callback_query(F.data.contains("yes"))
+async def delete_event(call: CallbackQuery):
+    event_id = call.data[3:]
+    # тут нужно удалить мероприятие
+    go_back = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Вернуться к меропритиям", callback_data=f'go back'), ],
+    ], )
+    photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core/static/delete_image.png")),
+                            caption=f""" Вы удалили мероприятие "{event.Event.fetch(int(call.data[3:])).name}" """,
+                            )
+    await call.message.edit_media(media=photo)
+    await call.message.edit_reply_markup(reply_markup=go_back)
