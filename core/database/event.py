@@ -102,10 +102,17 @@ class Event:
 
     def is_joined(self, user_id: int) -> bool:
         return (
-            len(
-                ParticipantTable.select().where(
-                    ParticipantTable.user == user_id, ParticipantTable.event == self.id
+                len(
+                    ParticipantTable.select().where(
+                        ParticipantTable.user == user_id, ParticipantTable.event == self.id
+                    )
                 )
-            )
-            > 0
+                > 0
         )
+
+    @staticmethod
+    def delete(event_id: int) -> None:
+        event = EventTable.get_or_none(id=event_id)
+        if event is None:
+            raise EventNotFound()
+        event.delete_instance()

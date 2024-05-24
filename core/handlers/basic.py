@@ -87,7 +87,7 @@ async def start_handler(message, state: FSMContext):
                 for e in event.Event.fetch_all():
                     if e.date.date() >= datetime.date.today():
                         all_events.inline_keyboard.append(
-                            [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
+                            [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
                                                   callback_data=f"more info {e.id}")])
                 if len(all_events.inline_keyboard) == 0:
                     raise exceptions.EventNotFound
@@ -133,7 +133,7 @@ async def go_back(call: CallbackQuery):
         for e in events:
             if e.date.date() >= datetime.date.today():
                 all_events.inline_keyboard.append(
-                    [InlineKeyboardButton(text=f"{e.name}(пройдет {e.date.day}.{e.date.month}.{e.date.year})",
+                    [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
                                           callback_data=f"more info {e.id}")])
         if len(all_events.inline_keyboard) == 0:
             raise exceptions.EventNotFound
@@ -146,10 +146,10 @@ async def go_back(call: CallbackQuery):
         await call.message.answer("На данный момент нет активных мероприятий (")
 
 
-@router.callback_query(F.data.contains("delete"))
+@router.callback_query(F.data.startswith("delete"))
 async def delete_event(call: CallbackQuery):
     approve_delete = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Да, удалить", callback_data=f'yes{call.data[6:]}'), ],
+        [InlineKeyboardButton(text="Да, удалить", callback_data=f'yes_delete{call.data[6:]}'), ],
         [InlineKeyboardButton(text="Отмена", callback_data=f'more info {call.data[6:]}'), ]
     ], )
     await call.message.edit_caption(caption=
@@ -157,15 +157,17 @@ async def delete_event(call: CallbackQuery):
     await call.message.edit_reply_markup(reply_markup=approve_delete)
 
 
-@router.callback_query(F.data.contains("yes"))
+@router.callback_query(F.data.startswith("yes_delete"))
 async def delete_event(call: CallbackQuery):
-    event_id = call.data[3:]
-    # тут нужно удалить мероприятие
+    event_id = call.data[len("yes_delete"):]
+    e = event.Event.fetch(event_id)
+    name = e.name
+    event.Event.delete(event_id)
     go_back = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Вернуться к меропритиям", callback_data=f'go back'), ],
     ], )
     photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core/static/delete_image.png")),
-                            caption=f""" Вы удалили мероприятие "{event.Event.fetch(int(call.data[3:])).name}" """,
+                            caption=f""" Вы удалили мероприятие "{name}" """,
                             )
     await call.message.edit_media(media=photo)
     await call.message.edit_reply_markup(reply_markup=go_back)

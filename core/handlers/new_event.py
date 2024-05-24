@@ -137,31 +137,35 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     await scheduler.add_pending(bot=bot, func=mailing, date=date_event - time_step,
                                 event_id=event_info.id)
 
-    await msg.edit_text('Мероприятяие успешно создано.\nСсылка-приглашение:\n'
-                        f'`https://t.me/fsgn_events_bot?start=event-{event_info.id}`\n'
-                        f'Ссылка на гугл-таблицу:\n'
-                        f'{link}', parse_mode="MARKDOWN")
+    await msg.edit_text(
+        f'Мероприятие успешно создано.\nСсылка-приглашение:\n'
+        f'https://t.me/fsgn\\_events\\_bot?start=event-{event_info.id}\n'
+        f'Ссылка на гугл-таблицу:\n'
+        f'{link}'
+    )
 
 
 @admin_router.callback_query(F.data.startswith('yes_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
-
+    print(call.data)
     event_id = call.data[9:]
-    e = event.Event.fetch(event_id)
-    if e.date >= datetime.datetime.now():
-        await call.message.edit_text(text='Мероприятие уже началось!')
-        return
-    await call.message.edit_text(text='Вы подтвердили свое участие')
-    for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
-        if partic.event.id == int(event_id):
-            participants.addParticipant(call.from_user.id, event_id)
-            partic.visit = Visit.YES
+    try:
+        e = event.Event.fetch(event_id)
+        if e.date >= datetime.datetime.now():
+            await call.message.edit_text(text='Мероприятие уже началось!')
             return
-
+        await call.message.edit_text(text='Вы подтвердили свое участие')
+        for partic in user.User.fetch_by_tg_id(call.from_user.id).participation():
+            if partic.event.id == int(event_id):
+                participants.addParticipant(call.from_user.id, event_id)
+                partic.visit = Visit.YES
+                return
+    except:
+        pass
 
 @admin_router.callback_query(F.data.startswith('no_visit'))
 async def type_handler(call: CallbackQuery, state: FSMContext):
-    event_id = call.data[9:]
+    event_id = call.data[8:]
     e = event.Event.fetch(event_id)
     if e.date >= datetime.datetime.now():
         await call.message.edit_text(text='Мероприятие уже началось!')

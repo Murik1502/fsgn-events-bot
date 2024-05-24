@@ -4,7 +4,7 @@ from .usertable import UserTable
 
 
 class EventTable(BaseModel):
-    creator = ForeignKeyField(UserTable, backref="events")
+    creator = ForeignKeyField(UserTable, backref="events", on_delete="CASCADE")
     name = CharField(50)
     description = TextField()
     photo_id = TextField()

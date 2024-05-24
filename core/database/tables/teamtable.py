@@ -7,8 +7,8 @@ CODE_LENGTH = 8
 
 
 class TeamTable(BaseModel):
-    leader = ForeignKeyField(UserTable, backref="teams")
-    event = ForeignKeyField(EventTable, backref="teams")
+    leader = ForeignKeyField(UserTable, backref="teams", on_delete="CASCADE")
+    event = ForeignKeyField(EventTable, backref="teams", on_delete="CASCADE")
     code = CharField(CODE_LENGTH)
 
     class Meta:
