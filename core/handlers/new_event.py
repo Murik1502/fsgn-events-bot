@@ -139,7 +139,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 
     await msg.edit_text(
         f'Мероприятие успешно создано.\nСсылка-приглашение:\n'
-        f'https://t.me/fsgn\\_events\\_bot?start=event-{event_info.id}\n'
+        f'https://t.me/fsgn_events_bot?start=event-{event_info.id}\n'
         f'Ссылка на гугл-таблицу:\n'
         f'{link}'
     )
