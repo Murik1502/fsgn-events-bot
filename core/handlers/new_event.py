@@ -151,7 +151,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     event_id = call.data[9:]
     try:
         e = event.Event.fetch(event_id)
-        if e.date >= datetime.datetime.now():
+        if e.date < datetime.datetime.now():
             await call.message.edit_text(text='Мероприятие уже началось!')
             return
         await call.message.edit_text(text='Вы подтвердили свое участие')
@@ -167,7 +167,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
 async def type_handler(call: CallbackQuery, state: FSMContext):
     event_id = call.data[8:]
     e = event.Event.fetch(event_id)
-    if e.date >= datetime.datetime.now():
+    if e.date < datetime.datetime.now():
         await call.message.edit_text(text='Мероприятие уже началось!')
         return
     await call.message.edit_text(text='Вы отказались принять участие')
