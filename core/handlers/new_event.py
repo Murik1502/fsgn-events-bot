@@ -143,6 +143,7 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
         f'Ссылка на гугл-таблицу:\n'
         f'{link}'
     )
+    await state.clear()
 
 
 @admin_router.callback_query(F.data.startswith('yes_visit'))
