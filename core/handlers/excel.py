@@ -10,7 +10,7 @@ exel_router = Router()
 
 
 # Хэндлер на команду /to_exel
-@exel_router.message(Command('to_exel'))
+@exel_router.message(Command('to_excel'))
 async def new_event(call: CallbackQuery):
     user_info = user.User.fetch_by_tg_id(call.from_user.id)
     if user_info.role != role.Role.ADMIN:
