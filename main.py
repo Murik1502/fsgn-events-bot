@@ -30,7 +30,7 @@ async def start():
     await scheduler.add_periodic(bot, func=sheet, interval=60)
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-    dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, exel.exel_router, )
+    dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, excel.exel_router, )
 
     try:
         await dp.start_polling(bot)
