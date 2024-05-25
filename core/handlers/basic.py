@@ -13,6 +13,7 @@ from .new_event import mailing
 from ..utils.statesform import *
 from ..handlers.registration import *
 from core.database import *
+from cache.apsched import scheduler
 
 router = Router()
 
@@ -30,7 +31,6 @@ async def start_handler(message, state: FSMContext):
                 cmd_dict[parts[i]] = parts[i + 1]
             event_id = cmd_dict.get('event')
             team_code = cmd_dict.get('team')
-
             event_info = event.Event.fetch(event_id)
             if event_info.date.date() < datetime.date.today():
                 raise exceptions.EventOutOfDate
@@ -54,13 +54,11 @@ async def start_handler(message, state: FSMContext):
                         await message.answer(
                             text=f"""{team_info.leader.first_name} пригласил(а) Вас на мероприятие "{event_info.name}"!\n""")
                     elif event_info.type == eventtype.EventType.TEAM:
-
-                        participants.addParticipant(user_id=message.from_user.id, event_id=event_id)
-
-                        created_team_info = user.User.create_team(user_info, event_id, message.from_user.username)
-                        await message.answer(text=f"""Вы присоединились к мероприятию "{event_info.name}"!\n"""
-                                                  f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_info.id}-team-{created_team_info[0].code}`",
-                                             parse_mode='MARKDOWN')
+                        approve_comman = InlineKeyboardMarkup(inline_keyboard=[
+                            [InlineKeyboardButton(text="Создать команду",
+                                                  callback_data=f'new command{event_info.id}'), ],
+                        ], )
+                        await message.answer(text="Данное мероприятияе является командным, вы можете создать новую команду, или вступить в существующую по ссылке приглашению",reply_markup = approve_comman)
                     else:
                         user.User.join(user_info, event_id, telegram_tag=message.from_user.username)
                         await message.answer(text=f""" Вы присоединились к мероприятию "{event_info.name}"!\n""")
@@ -78,6 +76,7 @@ async def start_handler(message, state: FSMContext):
             await message.answer(text="Ссылка недействительна")
         except exceptions.EventOutOfDate:
             await message.answer(text=f"Мероприятие уже закончилось (")
+
 
     else:
         try:
@@ -105,25 +104,27 @@ async def start_handler(message, state: FSMContext):
 @router.callback_query(F.data.contains("more info"))
 async def more_info(call: CallbackQuery):
     event_id = call.data.split()[2]
-    data = event.Event.fetch(int(event_id))
-    join_event = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
-        [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
-    ], )
-    if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)):
-        join_event = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
-            [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ],
-            [InlineKeyboardButton(text="Удалить", callback_data='delete' + event_id), ]
-        ], )
     try:
-        await call.message.edit_media(media=InputMediaPhoto(media=data.photo_id,
-                                                            caption=f"{data.description}"),
-                                      reply_markup=join_event)
-    except:
-        pass
-        # await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
-
+        data = event.Event.fetch(int(event_id))
+        join_event = InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
+            [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
+        ], )
+        if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)):
+            join_event = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
+                [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ],
+                [InlineKeyboardButton(text="Удалить", callback_data='delete' + event_id), ]
+            ], )
+        try:
+            await call.message.edit_media(media=InputMediaPhoto(media=data.photo_id,
+                                                                caption=f"{data.description}"),
+                                          reply_markup=join_event)
+        except:
+            pass
+            # await call.message.answer("Извините, произошла ошибка! Пожалуйста, перзапустите бота")
+    except exceptions.EventNotFound:
+        await call.message.answer(text="Данное мероприятияе закончилось, или было удалено!")
 
 @router.callback_query(F.data.contains("go back"))
 async def go_back(call: CallbackQuery):
@@ -171,3 +172,19 @@ async def delete_event(call: CallbackQuery):
                             )
     await call.message.edit_media(media=photo)
     await call.message.edit_reply_markup(reply_markup=go_back)
+
+@router.callback_query(F.data.startswith("new command"))
+async def new_command(call: CallbackQuery):
+    event_id = int(call.data[len("new command"):])
+    event_name = event.Event.fetch(event_id).name
+    user_info = user.User.fetch_by_tg_id(call.from_user.id)
+    try:
+        participants.addParticipant(user_id=call.from_user.id, event_id=event_id)
+
+        created_team_info = user.User.create_team(user_info, event_id, call.from_user.username)
+        await call.message.edit_text(text=f"""Вы присоединились к мероприятию "{event_name}"!\n"""
+                                  f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_id}-team-{created_team_info[0].code}`",
+                             parse_mode='MARKDOWN')
+        await call.message.edit_reply_markup(reply_markup=None)
+    except exceptions.UserAlreadyJoined:
+        await call.message.answer(f"""Вы уже присоденились к мероприятияю "{event_name}" """)
