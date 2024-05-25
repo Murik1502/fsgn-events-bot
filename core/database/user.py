@@ -119,6 +119,11 @@ class User:
         return User(model)
 
     @staticmethod
+    def fetch_all() -> list:
+        result = UserTable.select()
+        return result
+
+    @staticmethod
     def get_user_by_credentials(first_name: str, last_name: str) -> User:
         model = UserTable.select().where(
             UserTable.first_name == first_name and UserTable.last_name == last_name).first()

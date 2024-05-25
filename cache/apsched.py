@@ -41,23 +41,25 @@ scheduler = Scheduler()
 
 
 async def mailing(bot: Bot, event_id) -> None:
-    e = event.Event.fetch(event_id)
-    p = e.participants()
-    for model in p:
-        user_id = model.user.telegram_id
-        print(f"sending mail to {user_id}")
-        visit_status = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Да", callback_data=f"yes_visit{event_id}"),
-             InlineKeyboardButton(text="Нет", callback_data=f"no_visit{event_id}")]
-        ], )
-        try:
-            await bot.send_message(chat_id=user_id,
-                                   reply_markup=visit_status,
-                                   text=f"""Подтвердите свое участие в мероприятии "{e.name}" """)
-            print("mail sent successfully!")
-        except Exception as e:
-            print("something went wrong:", e)
-
+    try:
+        e = event.Event.fetch(event_id)
+        p = e.participants()
+        for model in p:
+            user_id = model.user.telegram_id
+            print(f"sending mail to {user_id}")
+            visit_status = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Да", callback_data=f"yes_visit{event_id}"),
+                 InlineKeyboardButton(text="Нет", callback_data=f"no_visit{event_id}")]
+            ], )
+            try:
+                await bot.send_message(chat_id=user_id,
+                                       reply_markup=visit_status,
+                                       text=f"""Подтвердите свое участие в мероприятии "{e.name}" """)
+                print("mail sent successfully!")
+            except Exception as e:
+                print("something went wrong:", e)
+    except exceptions.EventNotFound:
+        print("Error: can't mailing, no such event")
 
 async def sheet(bot: Bot):
     try:
