@@ -16,7 +16,7 @@ async def new_event(call: CallbackQuery):
     if user_info.role != role.Role.ADMIN:
         return
     title = ["ФИО", "Тэг в тг", "Уровень доступа", "Учебная группа"]
-    workbook = xlsxwriter.Workbook(os.path.join(os.getcwd(), "core/static/Users.xls"))
+    workbook = xlsxwriter.Workbook(os.path.join(os.getcwd(), "core/static/Users.xlsx"))
     worksheet = workbook.add_worksheet()
     bold = workbook.add_format({"bold": True})
 
@@ -32,4 +32,4 @@ async def new_event(call: CallbackQuery):
         counter += 1
     worksheet.autofit()
     workbook.close()
-    await call.answer_document(FSInputFile(os.path.join(os.getcwd(), "core/static/Users.xls")))
+    await call.answer_document(FSInputFile(os.path.join(os.getcwd(), "core/static/Users.xlsx")))
