@@ -15,23 +15,23 @@ reg_router = Router()
 
 @reg_router.message(StateFilter(Registration.step_start_reg))
 async def reg(message, state: FSMContext):
-    await state.set_state(Registration.first_name)
-    await message.answer(text='Для использования бота необходимо зарегистрироваться')
-    await message.answer(text='Введите Ваше Имя:')
-
-
-# Хэндлер на имя пользователя
-@reg_router.message(StateFilter(Registration.first_name))
-async def register_handler(message, state: FSMContext):
     await state.set_state(Registration.second_name)
-    await state.update_data(first_name=message.text.capitalize())
+    await message.answer(text='Для использования бота необходимо зарегистрироваться')
     await message.answer(text='Введите Вашу Фамилию:')
 
 
 # Хэндлер на фамилию пользователя
 @reg_router.message(StateFilter(Registration.second_name))
 async def register_handler(message, state: FSMContext):
+    await state.set_state(Registration.first_name)
     await state.update_data(second_name=message.text.capitalize())
+    await message.answer(text='Введите Ваше имя:')
+
+
+# Хэндлер на имя пользователя
+@reg_router.message(StateFilter(Registration.first_name))
+async def register_handler(message, state: FSMContext):
+    await state.update_data(first_name=message.text.capitalize())
     await state.set_state(Registration.middle_name)
     await message.answer("Введите Ваше Отчество:")
 
