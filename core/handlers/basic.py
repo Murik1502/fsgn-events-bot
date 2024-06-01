@@ -54,6 +54,8 @@ async def start_handler(message, state: FSMContext):
                         await message.answer(
                             text=f"""{team_info.leader.first_name} пригласил(а) Вас на мероприятие "{event_info.name}"!\n""")
                     elif event_info.type == eventtype.EventType.TEAM:
+                        for partic in user.User.fetch(user_info.id).participation():
+                            if partic.event.id == int(event_id): raise exceptions.UserAlreadyJoined
                         approve_comman = InlineKeyboardMarkup(inline_keyboard=[
                             [InlineKeyboardButton(text="Создать команду",
                                                   callback_data=f'new command{event_info.id}'), ],
@@ -76,8 +78,6 @@ async def start_handler(message, state: FSMContext):
             await message.answer(text="Ссылка недействительна")
         except exceptions.EventOutOfDate:
             await message.answer(text=f"Мероприятие уже закончилось (")
-
-
     else:
         try:
             user_info = user.User.fetch_by_tg_id(message.from_user.id)
@@ -183,7 +183,7 @@ async def new_command(call: CallbackQuery):
 
         created_team_info = user.User.create_team(user_info, event_id, call.from_user.username)
         await call.message.edit_text(text=f"""Вы присоединились к мероприятию "{event_name}"!\n"""
-                                  f"Ссылка на приглашение участников команды:\n`https://t.me/fsgn_events_bot?start=event-{event_id}-team-{created_team_info[0].code}`",
+                                  f"Скопируй и отправь другу эту ссылку, чтобы он присоединился к твоей команде:\n`https://t.me/fsgn_events_bot?start=event-{event_id}-team-{created_team_info[0].code}`",
                              parse_mode='MARKDOWN')
         await call.message.edit_reply_markup(reply_markup=None)
     except exceptions.UserAlreadyJoined:
