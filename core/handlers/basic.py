@@ -107,12 +107,12 @@ async def more_info(call: CallbackQuery):
     try:
         data = event.Event.fetch(int(event_id))
         join_event = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
+            [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
             [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
         ], )
         if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)):
             join_event = InlineKeyboardMarkup(inline_keyboard=[
-                [InlineKeyboardButton(text="Вступить", url=f'https://t.me/test_for_cifrabot?start=event-{data.id}'), ],
+                [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
                 [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ],
                 [InlineKeyboardButton(text="Удалить", callback_data='delete' + event_id), ]
             ], )
