@@ -4,10 +4,13 @@ from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 
 from core.handlers import basic, new_event, registration, admin, excel
+from core.handlers.mailing import mailing_handler
+from core.handlers.mailing import mail_router
+from core.handlers.update_table import update_table_router
 from bot import bot
 from defaults.settings import settings
 from core.utils.commands import set_commands
-from cache.apsched import scheduler, sheet
+from cache.apsched import scheduler, sheet, mailing
 
 
 async def start_bot(bot: Bot):
@@ -30,7 +33,7 @@ async def start():
     await scheduler.add_periodic(bot, func=sheet, interval=60)
     dp.startup.register(start_bot)
     dp.shutdown.register(stop_bot)
-    dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, excel.exel_router, )
+    dp.include_routers(basic.router, admin.give_admin_router, new_event.admin_router, registration.reg_router, excel.exel_router, mail_router, update_table_router)
 
     try:
         await dp.start_polling(bot)
