@@ -9,6 +9,11 @@ from core.database import event, eventtype, exceptions
 from defaults.settings import settings
 from google_sheet.sheet_editor import Sheet
 from cache.participants import participants as participants_map, update_limit
+import multiprocessing as mp
+
+
+def run_update(sheet_obj, arg):
+    sheet_obj.updateSheet(arg)
 
 
 class Scheduler:
@@ -86,7 +91,8 @@ async def sheet(bot: Bot):
                         arr.append([p.user.telegram_id, p.telegram_tag,
                                     f"{p.user.last_name} {p.user.first_name} {p.user.middle_name}",
                                     p.user.group, teams.index(p.team.code) + 1, visit])
-                    a.updateSheet(arr)
+                    sheet_process = mp.Process(target=run_update,args=(a,arr))
+                    sheet_process.start()
                     # Зачистка списка новозарегестрированных
                     participants_map.clear(e.id)
                 else:
@@ -103,7 +109,8 @@ async def sheet(bot: Bot):
                         arr.append([p.user.telegram_id, p.telegram_tag,
                                     f"{p.user.last_name} {p.user.first_name} {p.user.middle_name}",
                                     p.user.group, visit])
-                    a.updateSheet(arr)
+                    sheet_process = mp.Process(target=run_update,args=(a,arr))
+                    sheet_process.start()
                     # Зачистка списка новозарегестрированных
                     participants_map.clear(e.id)
             except Exception as e:

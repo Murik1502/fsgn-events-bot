@@ -23,3 +23,10 @@ class Registration(StatesGroup):
 
 class StartStates(StatesGroup):
     step_reg = State()
+
+class MailStates(StatesGroup):
+    image_step = State()
+    text_step = State()
+    mail_type_step = State()
+    approve_step = State()
+    chose_event = State()

@@ -19,3 +19,18 @@ reg_status = InlineKeyboardMarkup(inline_keyboard=[
     [InlineKeyboardButton(text="Всё верно", callback_data="confirm"),
      InlineKeyboardButton(text="Изменить", callback_data="change")]
 ], )
+
+mail_approve = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Разослать", callback_data="mail"),
+     InlineKeyboardButton(text="Пересоздать", callback_data="recreate")]
+], )
+
+mail_type = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="Всем", callback_data="all users"),
+     InlineKeyboardButton(text="Участникам", callback_data="only participants")]
+], )
+
+image = InlineKeyboardMarkup(inline_keyboard=[
+    [InlineKeyboardButton(text="С картинкой", callback_data="with image"),
+     InlineKeyboardButton(text="Без картинки", callback_data="without")]
+], )
