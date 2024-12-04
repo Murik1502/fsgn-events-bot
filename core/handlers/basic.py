@@ -1,6 +1,8 @@
 import datetime
 import os.path
 
+from oauthlib.uri_validate import userinfo
+
 from cache.participants import participants
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, InputMediaPhoto
 
@@ -83,11 +85,16 @@ async def start_handler(message, state: FSMContext):
             user_info = user.User.fetch_by_tg_id(message.from_user.id)
             try:
                 all_events = InlineKeyboardMarkup(inline_keyboard=[])
+                data = {}
                 for e in event.Event.fetch_all():
-                    if e.date.date() >= datetime.date.today():
+                    data[e.id] = e.date
+                data = dict(sorted(data.items(), key=lambda item: item[1]))
+                for e in data.keys():
+                    info = event.Event.fetch(e)
+                    if info.date.date() >= datetime.date.today() or user_info.role == role.Role.ADMIN:
                         all_events.inline_keyboard.append(
-                            [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
-                                                  callback_data=f"more info {e.id}")])
+                            [InlineKeyboardButton(text=f"{info.name} ({info.date.day}.{info.date.month}.{info.date.year})",
+                                                  callback_data=f"more info {info.id}")])
                 if len(all_events.inline_keyboard) == 0:
                     raise exceptions.EventNotFound
                 await message.answer_photo(
@@ -110,7 +117,8 @@ async def more_info(call: CallbackQuery):
             [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
             [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ]
         ], )
-        if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)):
+        user_info = user.User.fetch_by_tg_id(call.from_user.id)
+        if event.Event.fetch(int(event_id)).creator.id == int(str(user.User.fetch_by_tg_id(call.from_user.id).id)) or user_info.role == role.Role.ADMIN:
             join_event = InlineKeyboardMarkup(inline_keyboard=[
                 [InlineKeyboardButton(text="Вступить", url=f'https://t.me/fsgn_events_bot?start=event-{data.id}'), ],
                 [InlineKeyboardButton(text="Вернуться назад", callback_data='go back'), ],
@@ -131,11 +139,17 @@ async def go_back(call: CallbackQuery):
     try:
         all_events = InlineKeyboardMarkup(inline_keyboard=[])
         events = event.Event.fetch_all()
-        for e in events:
-            if e.date.date() >= datetime.date.today():
+        user_info = user.User.fetch_by_tg_id(call.from_user.id)
+        data = {}
+        for e in event.Event.fetch_all():
+            data[e.id] = e.date
+        data = dict(sorted(data.items(), key=lambda item: item[1]))
+        for e in data.keys():
+            info = event.Event.fetch(e)
+            if info.date.date() >= datetime.date.today() or user_info.role == role.Role.ADMIN:
                 all_events.inline_keyboard.append(
-                    [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
-                                          callback_data=f"more info {e.id}")])
+                    [InlineKeyboardButton(text=f"{info.name} ({info.date.day}.{info.date.month}.{info.date.year})",
+                                          callback_data=f"more info {info.id}")])
         if len(all_events.inline_keyboard) == 0:
             raise exceptions.EventNotFound
         photo = InputMediaPhoto(media=FSInputFile(os.path.join(os.getcwd(), "core/static/welcome_image.jpg")),

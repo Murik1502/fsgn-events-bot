@@ -85,12 +85,9 @@ async def type_handler(call: CallbackQuery, state: FSMContext):
     try:
         all_events = InlineKeyboardMarkup(inline_keyboard=[])
         for e in event.Event.fetch_all():
-            if e.date.date() >= datetime.date.today():
-                all_events.inline_keyboard.append(
-                    [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
+            all_events.inline_keyboard.append(
+                [InlineKeyboardButton(text=f"{e.name} ({e.date.day}.{e.date.month}.{e.date.year})",
                                           callback_data=f"chose event {e.id}")])
-        if len(all_events.inline_keyboard) == 0:
-            raise exceptions.EventNotFound
         await call.message.answer(
             text="Выберите меропритие участникам которого необходимо отправить сообщение",
             reply_markup=all_events)
