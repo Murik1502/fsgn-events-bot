@@ -5,6 +5,8 @@ from aiogram import Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
 
+import betterlogging as logging
+
 from bot import bot
 
 from cache.apsched import scheduler
@@ -128,6 +130,7 @@ async def start_mail_handler(call: CallbackQuery, state: FSMContext):
                     await bot.send_photo(chat_id=user_id,
                                         photo=data['image'],
                                         caption=data['text'])
+                    logging.debug(f"Successfully sending a message, user id: {user_id}")
                 except Exception as e:
                     print("something went wrong:", e)
         else:
@@ -136,6 +139,7 @@ async def start_mail_handler(call: CallbackQuery, state: FSMContext):
                 try:
                     await bot.send_message(chat_id=user_id,
                                            text=data['text'])
+                    logging.debug(f"Successfully sending a message, user id: {user_id}")
                 except Exception as e:
                     print("something went wrong:", e)
     except exceptions.EventNotFound:
