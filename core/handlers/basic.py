@@ -62,7 +62,7 @@ async def start_handler(message, state: FSMContext):
                             [InlineKeyboardButton(text="Создать команду",
                                                   callback_data=f'new command{event_info.id}'), ],
                         ], )
-                        await message.answer(text="Данное мероприятияе является командным, вы можете создать новую команду, или вступить в существующую по ссылке приглашению",reply_markup = approve_comman)
+                        await message.answer(text="Данное мероприятие является командным, вы можете создать новую команду, или вступить в существующую по ссылке приглашению",reply_markup = approve_comman)
                     else:
                         user.User.join(user_info, event_id, telegram_tag=message.from_user.username)
                         await message.answer(text=f""" Вы присоединились к мероприятию "{event_info.name}"!\n""")
